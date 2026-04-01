@@ -1,7 +1,3 @@
-Here’s a **clean, professional, and attractive README section** for your GitHub project based on your features 👇
-
----
-
 # 🚀 Multithreaded Chat Server
 
 A **scalable and secure real-time chat application** built using **multithreading, WebSockets, and efficient data structures**.
