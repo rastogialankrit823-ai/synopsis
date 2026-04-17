@@ -47,33 +47,62 @@ void respsend(int client, string body, string type="text/plain") {
 
     write(client, res.c_str(), res.size());
 }
+void redirect(int client,str a){
+    string res ="HTTP/1.1 302 Found\r\n"
+"Location: "+a+"\r\n"
+"Connection: close\r\n"
+"\r\n";
+write(client, res.c_str(), res.size());
+}
 void handler(int server,int cid){
     str req=reqread(clients[cid]);
      if(req.find("GET / ") != string::npos || req.find("GET /HTTP") != string::npos) {
 
         str html =
-        "<!DOCTYPE html>"
-        "<html><body>"
-        "<h2>Login</h2>"
-        "<input id='u' placeholder='user'><br><br>"
-        "<input id='p' type='password' placeholder='pass'><br><br>"
-        "<button onclick='login()'>Login</button>"
+"<!DOCTYPE html>"
+"<html>"
+"<head><title>Login</title></head>"
+"<body>"
 
-        "<script>"
-        "function login(){"
-        "fetch('/login',{"
-        "method:'POST',"
-        "headers:{'Content-Type':'application/json'},"
-        "body:JSON.stringify({"
-        "uid:document.getElementById('u').value,"
-        "pass:document.getElementById('p').value"
-        "})"
-        "})"
-        ".then(r=>r.text()).then(alert);"
-        "}"
-        "</script>"
+"<h2>Login</h2>"
 
-        "</body></html>";
+"<input id='u' placeholder='User ID'><br><br>"
+"<input id='p' type='password' placeholder='Password'><br><br>"
+
+"<button onclick='login()'>Login</button>"
+
+"<p id='msg' style='color:red;'></p>"
+
+"<script>"
+"function login(){"
+
+"const uid = document.getElementById('u').value;"
+"const pass = document.getElementById('p').value;"
+
+"fetch('/login',{"
+"method:'POST',"
+"headers:{'Content-Type':'application/json'},"
+"body:JSON.stringify({uid:uid, pass:pass})"
+"})"
+
+".then(res=>res.text())"
+".then(data=>{"
+
+"if(data==='ok'){"
+"window.location.href='/home';"
+"}else{"
+"document.getElementById('msg').innerText='Invalid credentials';"
+"}"
+
+"})"
+".catch(()=>{"
+"document.getElementById('msg').innerText='Server error';"
+"});"
+
+"}"
+"</script>"
+
+"</body></html>";
 
         respsend(clients[cid], html, "text/html");
     }
@@ -94,19 +123,30 @@ void handler(int server,int cid){
             pass = pass.substr(0, pass.find("\""));
         }
         str rep="";
+        str a=" ";
         if(ids.find(uid)!=ids.end() && ids[uid]==pass){
             rep="ok";
+            a=" /home ";
         }
         else rep="dead dude";
         respsend(clients[cid],rep);
-        close(clients[cid]);
+        //redirect(clients[cid],a);
     }
+    if(req.find("GET /home") != string::npos) {
+
+    str htmll =
+    "<html><body>"
+    "<h1>Welcome! You are logged in 🎉</h1>"
+    "</body></html>";
+
+    respsend(clients[cid], htmll, "text/html");
+    }close(clients[cid]);
 }
 
 int main(){
     int server = socket(AF_INET, SOCK_STREAM, 0);
     sockaddr_in address;
-
+    ids["a"]="1";
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(PORT);
@@ -114,7 +154,7 @@ int main(){
     bind(server, (sockaddr*)&address, sizeof(address));
     listen(server, 5);
 
-    //cout << "Chat server running on port " << PORT << "\n";
+    cout << "Chat server running on port " << PORT << "\n";
     bool status=true;
     ll cur=0;
     while(status){
