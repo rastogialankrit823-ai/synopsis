@@ -63,50 +63,85 @@ void handler(int server,int cid){
 "<html>"
 "<head><title>Login</title></head>"
 "<body>"
-
 "<h2>Login</h2>"
-
 "<input id='u' placeholder='User ID'><br><br>"
 "<input id='p' type='password' placeholder='Password'><br><br>"
-
 "<button onclick='login()'>Login</button>"
-
+"<button onclick='goSignup()'>Sign Up</button>"
 "<p id='msg' style='color:red;'></p>"
-
 "<script>"
 "function login(){"
-
-"const uid = document.getElementById('u').value;"
-"const pass = document.getElementById('p').value;"
-
+"const uid=document.getElementById('u').value;"
+"const pass=document.getElementById('p').value;"
 "fetch('/login',{"
 "method:'POST',"
 "headers:{'Content-Type':'application/json'},"
-"body:JSON.stringify({uid:uid, pass:pass})"
+"body:JSON.stringify({uid:uid,pass:pass})"
 "})"
-
-".then(res=>res.text())"
+".then(r=>r.text())"
 ".then(data=>{"
-
 "if(data==='ok'){"
 "window.location.href='/home';"
 "}else{"
 "document.getElementById('msg').innerText='Invalid credentials';"
 "}"
-
-"})"
-".catch(()=>{"
-"document.getElementById('msg').innerText='Server error';"
 "});"
-
+"}"
+"function goSignup(){"
+"window.location.href='/signup';"
 "}"
 "</script>"
-
 "</body></html>";
-
         respsend(clients[cid], html, "text/html");
     }
-    if(req.find("POST /login") != string::npos) {
+    if(req.find("GET /home") != string::npos) {
+
+    str ho =
+    "<html><body>"
+    "<h1>Welcome! You are logged in 🎉</h1>"
+    "</body></html>";
+
+    respsend(clients[cid], ho, "text/html");
+    }
+     if(req.find("GET /signup") != string::npos){
+        str sign =
+"<!DOCTYPE html>"
+"<html>"
+"<head><title>Sign Up</title></head>"
+"<body>"
+"<h2>Sign Up</h2>"
+"<input id='u' placeholder='New User ID'><br><br>"
+"<input id='p' type='password' placeholder='New Password'><br><br>"
+"<button onclick='signup()'>Save</button>"
+"<p id='msg' style='color:green;'></p>"
+"<script>"
+"function signup(){"
+"const uid=document.getElementById('u').value;"
+"const pass=document.getElementById('p').value;"
+"fetch('/signup',{"
+"method:'POST',"
+"headers:{'Content-Type':'application/json'},"
+"body:JSON.stringify({uid:uid,pass:pass})"
+"})"
+".then(r=>r.text())"
+".then(data=>{"
+"document.getElementById('msg').innerText=data;"
+"if(data==='ok'){"
+"window.location.href='/';"
+"}else{"
+"document.getElementById('msg').innerText='Invalid credentials';"
+"}"
+"});"
+"}"
+"</script>"
+"</body></html>";
+        respsend(clients[cid], sign, "text/html");
+
+     }
+
+
+
+     if(req.find("POST /login") != string::npos) {
 
         string body = req.substr(req.find("\r\n\r\n") + 4);
         str uid = "", pass = "";
@@ -126,21 +161,40 @@ void handler(int server,int cid){
         str a=" ";
         if(ids.find(uid)!=ids.end() && ids[uid]==pass){
             rep="ok";
-            a=" /home ";
         }
         else rep="dead dude";
         respsend(clients[cid],rep);
         //redirect(clients[cid],a);
     }
-    if(req.find("GET /home") != string::npos) {
+    if(req.find("POST /signup") != string::npos) {
 
-    str htmll =
-    "<html><body>"
-    "<h1>Welcome! You are logged in 🎉</h1>"
-    "</body></html>";
+        string body = req.substr(req.find("\r\n\r\n") + 4);
+        str uid = "", pass = "";
 
-    respsend(clients[cid], htmll, "text/html");
-    }close(clients[cid]);
+        int u = body.find("uid");
+        if(u != string::npos) {
+            uid = body.substr(u + 6);
+            uid = uid.substr(0, uid.find("\""));
+        }
+
+        int p = body.find("pass");
+        if(p != string::npos) {
+            pass = body.substr(p + 7);
+            pass = pass.substr(0, pass.find("\""));
+        }
+        str rep="";
+        str a=" ";
+        if(ids.find(uid)!=ids.end() && ids[uid]==pass){
+            rep="dead dude";
+        }
+        else {
+            rep="ok";
+            ids[uid]=pass;
+        }
+        respsend(clients[cid],rep);
+        //redirect(clients[cid],a);
+    }
+    close(clients[cid]);
 }
 
 int main(){
