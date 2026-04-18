@@ -1,15 +1,6 @@
-#include <iostream>
-#include <thread>
-#include <vector>
-#include <map>
-#include <mutex>
+#ifndef HTMLS_H
+#define HTMLS_H
 #include <cstring>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sstream>
-#define ll long long
-#define PORT 8080
-#define BUFFER_SIZE 1024
 #define str string
 using namespace std;
  str login =
@@ -125,6 +116,4 @@ str sign =
 "}"
 "</script>"
 "</body></html>";
-int main(){
-    return 0;
-}
+#endif
