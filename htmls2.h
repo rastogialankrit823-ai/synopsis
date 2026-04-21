@@ -2,6 +2,8 @@
 #define HTMLS_H
 #include <string>
 
+/* ================= LOGIN ================= */
+
 std::string login =
 "<!DOCTYPE html>"
 "<html>"
@@ -10,243 +12,100 @@ std::string login =
 "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
 
 "<style>"
-"body {"
-"  margin:0;"
-"  font-family: Arial, sans-serif;"
-"  background: linear-gradient(135deg,#1e3c72,#2a5298);"
-"  display:flex;"
-"  justify-content:center;"
-"  align-items:center;"
-"  height:100vh;"
+"body{margin:0;font-family:Arial;height:100vh;display:flex;justify-content:center;align-items:center;"
+"background:url(\"bg.jpg\") center/cover no-repeat;}"
+
+"body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:-1;}"
+
+".card{"
+"background:rgba(255,255,255,0.08);"
+"backdrop-filter:blur(12px);"
+"padding:30px;"
+"border-radius:12px;"
+"color:white;"
+"width:300px;"
+"box-shadow:0 0 25px rgba(0,0,0,0.6);"
 "}"
 
-".card {"
-"  background:#111;"
-"  padding:30px;"
-"  border-radius:12px;"
-"  width:300px;"
-"  box-shadow:0 0 15px rgba(0,0,0,0.5);"
-"  color:white;"
-"}"
-
-"h2 { text-align:center; margin-bottom:20px; }"
-
-"input {"
-"  width:100%;"
-"  padding:10px;"
-"  margin:10px 0;"
-"  border:none;"
-"  border-radius:6px;"
-"}"
-
-"button {"
-"  width:100%;"
-"  padding:10px;"
-"  margin-top:10px;"
-"  background:#4caf50;"
-"  border:none;"
-"  border-radius:6px;"
-"  color:white;"
-"  font-size:16px;"
-"  cursor:pointer;"
-"}"
-
-"button:hover { background:#45a049; }"
-
-".link {"
-"  text-align:center;"
-"  margin-top:10px;"
-"  cursor:pointer;"
-"  color:#4caf50;"
-"}"
-
-"#msg {"
-"  text-align:center;"
-"  margin-top:10px;"
-"  color:#ff6b6b;"
-"}"
+"input{width:100%;padding:10px;margin:10px 0;border:none;border-radius:6px;}"
+"button{width:100%;padding:10px;background:#4caf50;border:none;border-radius:6px;color:white;cursor:pointer;}"
+".link{margin-top:10px;text-align:center;cursor:pointer;color:#4caf50;}"
+"#msg{text-align:center;color:#ff6b6b;}"
 "</style>"
 "</head>"
 
 "<body>"
-
 "<div class='card'>"
-"<h2>🔐 Login</h2>"
-
+"<h2>Login</h2>"
 "<input id='u' placeholder='User ID'>"
 "<input id='p' type='password' placeholder='Password'>"
-
 "<button onclick='login()'>Login</button>"
-
 "<div class='link' onclick='goSignup()'>Create account</div>"
-
 "<p id='msg'></p>"
 "</div>"
 
 "<script>"
-
 "function login(){"
-"const uid=document.getElementById('u').value;"
-"const pass=document.getElementById('p').value;"
-
-"if(!uid || !pass){"
-"document.getElementById('msg').innerText='Fill all fields';"
-"return;"
-"}"
-
-"fetch('/login',{"
-"method:'POST',"
-"headers:{'Content-Type':'application/json'},"
-"body:JSON.stringify({uid:uid,pass:pass})"
-"})"
-".then(r=>r.text())"
-".then(data=>{"
-"if(data==='ok'){"
-"window.location.href='/home?uid='+uid;"
-"}else{"
-"document.getElementById('msg').innerText='Invalid credentials';"
-"}"
-"})"
-".catch(()=>{"
-"document.getElementById('msg').innerText='Server error';"
-"});"
-"}"
-
-"function goSignup(){"
-"window.location.href='/signup';"
-"}"
-
-"document.getElementById('p').addEventListener('keypress',function(e){"
-"if(e.key==='Enter') login();"
-"});"
-
+"let u=document.getElementById('u').value;"
+"let p=document.getElementById('p').value;"
+"fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({uid:u,pass:p})})"
+".then(r=>r.text()).then(d=>{"
+"if(d==='ok')location.href='/home?uid='+u;"
+"else document.getElementById('msg').innerText='Invalid';"
+"});}"
+"function goSignup(){location.href='/signup';}"
 "</script>"
 
 "</body></html>";
 
+/* ================= SIGNUP ================= */
 
 std::string signup =
 "<!DOCTYPE html>"
 "<html>"
 "<head>"
-"<title>Sign Up</title>"
+"<title>Signup</title>"
 "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
 
 "<style>"
-"body {"
-"  margin:0;"
-"  font-family: Arial, sans-serif;"
-"  background: linear-gradient(135deg,#1e3c72,#2a5298);"
-"  display:flex;"
-"  justify-content:center;"
-"  align-items:center;"
-"  height:100vh;"
-"}"
+"body{margin:0;font-family:Arial;height:100vh;display:flex;justify-content:center;align-items:center;"
+"background:url(\"bg.jpg\") center/cover no-repeat;}"
 
-".card {"
-"  background:#111;"
-"  padding:30px;"
-"  border-radius:12px;"
-"  width:300px;"
-"  box-shadow:0 0 15px rgba(0,0,0,0.5);"
-"  color:white;"
-"}"
+"body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:-1;}"
 
-"h2 { text-align:center; margin-bottom:20px; }"
+".card{background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);padding:30px;border-radius:12px;color:white;width:300px;box-shadow:0 0 25px rgba(0,0,0,0.6);}"
 
-"input {"
-"  width:100%;"
-"  padding:10px;"
-"  margin:10px 0;"
-"  border:none;"
-"  border-radius:6px;"
-"}"
-
-"button {"
-"  width:100%;"
-"  padding:10px;"
-"  margin-top:10px;"
-"  background:#4caf50;"
-"  border:none;"
-"  border-radius:6px;"
-"  color:white;"
-"  font-size:16px;"
-"  cursor:pointer;"
-"}"
-
-"button:hover { background:#45a049; }"
-
-".link {"
-"  text-align:center;"
-"  margin-top:10px;"
-"  cursor:pointer;"
-"  color:#4caf50;"
-"}"
-
-"#msg {"
-"  text-align:center;"
-"  margin-top:10px;"
-"  color:#90ee90;"
-"}"
+"input{width:100%;padding:10px;margin:10px 0;border:none;border-radius:6px;}"
+"button{width:100%;padding:10px;background:#4caf50;border:none;border-radius:6px;color:white;cursor:pointer;}"
+".link{margin-top:10px;text-align:center;cursor:pointer;color:#4caf50;}"
+"#msg{text-align:center;color:#90ee90;}"
 "</style>"
 "</head>"
 
 "<body>"
-
 "<div class='card'>"
-"<h2>📝 Sign Up</h2>"
-
+"<h2>Sign Up</h2>"
 "<input id='u' placeholder='User ID'>"
 "<input id='p' type='password' placeholder='Password'>"
-
-"<button onclick='signup()'>Create Account</button>"
-
-"<div class='link' onclick='goLogin()'>Already have an account?</div>"
-
+"<button onclick='signup()'>Create</button>"
+"<div class='link' onclick='goLogin()'>Back to login</div>"
 "<p id='msg'></p>"
 "</div>"
 
 "<script>"
-
 "function signup(){"
-"const uid=document.getElementById('u').value;"
-"const pass=document.getElementById('p').value;"
-
-"if(!uid || !pass){"
-"document.getElementById('msg').innerText='Fill all fields';"
-"return;"
-"}"
-
-"fetch('/signup',{"
-"method:'POST',"
-"headers:{'Content-Type':'application/json'},"
-"body:JSON.stringify({uid:uid,pass:pass})"
-"})"
-".then(r=>r.text())"
-".then(data=>{"
-"if(data==='ok'){"
-"document.getElementById('msg').innerText='Account created! Redirecting...';"
-"setTimeout(()=>{ window.location.href='/'; },1000);"
-"}else{"
-"document.getElementById('msg').innerText='Error';"
-"}"
-"})"
-".catch(()=>{"
-"document.getElementById('msg').innerText='Server error';"
-"});"
-"}"
-
-"function goLogin(){"
-"window.location.href='/';"
-"}"
-
-"document.getElementById('p').addEventListener('keypress',function(e){"
-"if(e.key==='Enter') signup();"
-"});"
-
+"let u=document.getElementById('u').value;"
+"let p=document.getElementById('p').value;"
+"fetch('/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({uid:u,pass:p})})"
+".then(r=>r.text()).then(d=>{"
+"if(d==='ok'){document.getElementById('msg').innerText='Created';setTimeout(()=>location.href='/',1000);}"
+"});}"
+"function goLogin(){location.href='/';}"
 "</script>"
 
 "</body></html>";
+
+/* ================= HOME ================= */
 
 std::string home =
 "<!DOCTYPE html>"
@@ -256,210 +115,124 @@ std::string home =
 "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
 
 "<style>"
+"body{margin:0;font-family:Arial;height:100vh;display:flex;"
+"background:url(\"bg.jpg\") center/cover no-repeat;}"
 
-/* BACKGROUND */
-"body {"
-"  margin:0;"
-"  font-family: Arial, sans-serif;"
-"  background: linear-gradient(135deg,#1e3c72,#2a5298);"
-"  height:100vh;"
-"  display:flex;"
-"  justify-content:center;"
-"  align-items:center;"
-"}"
+"body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:-1;}"
 
-/* CARD */
-".card {"
-"  width:800px;"
-"  height:450px;"
-"  background:#111;"
-"  border-radius:12px;"
-"  display:flex;"
-"  flex-direction:column;"
-"  padding:15px;"
-"  box-shadow:0 0 20px rgba(0,0,0,0.6);"
-"  color:white;"
-"}"
+".container{display:flex;width:100vw;height:100vh;background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);}"
 
-/* HEADER */
-".header {"
-"  text-align:center;"
-"  margin-bottom:10px;"
-"}"
+/* SIDEBAR */
+".users{width:220px;background:rgba(0,0,0,0.5);padding:10px;color:white;overflow:auto;}"
+".users div{padding:8px;border-bottom:1px solid #333;cursor:pointer;}"
+".users div:hover{background:#222;}"
 
 /* CHAT */
-".chat {"
-"  flex:1;"
-"  overflow-y:auto;"
-"  border:1px solid #333;"
-"  border-radius:8px;"
-"  padding:10px;"
-"  background:#000;"
-"  display:flex;"
-"  flex-direction:column;"
-"  position:relative;"
-"}"
+".chatbox{flex:1;display:flex;flex-direction:column;padding:10px;color:white;}"
+".chat{flex:1;background:rgba(0,0,0,0.4);padding:10px;border-radius:8px;overflow:auto;display:flex;flex-direction:column;}"
 
-/* MESSAGE */
-".msg {"
-"  margin:5px 0;"
-"  padding:8px 12px;"
-"  border-radius:10px;"
-"  max-width:70%;"
-"}"
+".msg{padding:8px;margin:5px 0;border-radius:8px;max-width:70%;}"
+".me{background:#4caf50;margin-left:auto;}"
+".other{background:#444;}"
 
-".me { background:#4caf50; margin-left:auto; }"
-".other { background:#444; }"
+/* INPUT ROW */
+".row{display:flex;gap:5px;margin-top:5px;}"
+".row input{flex:1;padding:10px;border:none;border-radius:6px;}"
+".row button{width:80px;background:#4caf50;border:none;border-radius:6px;color:white;cursor:pointer;}"
 
-".name { font-size:10px; opacity:0.7; }"
-
-/* INPUT */
-".input-area { margin-top:10px; }"
-
-"input {"
-"  width:100%;"
-"  padding:10px;"
-"  margin:5px 0;"
-"  border:none;"
-"  border-radius:6px;"
-"}"
-
-"button {"
-"  width:100%;"
-"  padding:10px;"
-"  background:#4caf50;"
-"  border:none;"
-"  border-radius:6px;"
-"  color:white;"
-"  font-size:16px;"
-"  cursor:pointer;"
-"}"
-
-"button:hover { background:#45a049; }"
-
-/* 🟡 BALL */
-".ball {"
-"  position:absolute;"
-"  left:30px;"
-"  top:0;"
-"  font-size:18px;"
-"  animation: dropBall 0.7s ease-in forwards;"
-"}"
-
-/* ⚡ ASCII LINES */
-".lines {"
-"  position:absolute;"
-"  left:25px;"
-"  top:0;"
-"  color:white;"
-"  font-family: monospace;"
-"  white-space: pre;"
-"  animation: dropBall 0.7s ease-in forwards;"
-"  opacity:0.8;"
-"}"
-
-/* ANIMATION */
-"@keyframes dropBall {"
-"  0% { transform: translateY(-80px); opacity:0; }"
-"  70% { transform: translateY(200px); opacity:1; }"
-"  100% { transform: translateY(180px); }"
-"}"
-
+/* ASCII */
+".ascii{background:#000;color:#00ff90;font-family:monospace;padding:10px;margin-top:10px;border-radius:6px;height:120px;overflow:auto;white-space:pre;}"
 "</style>"
 "</head>"
 
 "<body>"
 
-"<div class='card'>"
+"<div class='container'>"
 
-"<div class='header'>"
-"<h3>💬 Chat</h3>"
-"<small id='user'></small>"
-"</div>"
+/* USERS */
+"<div id='users' class='users'></div>"
+
+/* CHAT */
+"<div class='chatbox'>"
 
 "<input id='to' placeholder='Send to user'>"
 
 "<div id='chat' class='chat'></div>"
 
-"<div class='input-area'>"
-"<input id='msg' placeholder='Type a message...'>"
+"<div class='row'>"
+"<input id='msg' placeholder='Message'>"
 "<button onclick='sendMsg()'>Send</button>"
 "</div>"
 
+/* ASCII */
+"<input id='botInput' placeholder='ASCII text'>"
+"<button onclick='gen()'>Generate</button>"
+
+"<div id='asciiOut' class='ascii'></div>"
+
+"<button onclick='copy()'>Copy</button>"
+"<button onclick='sendASCII()'>Send ASCII</button>"
+
+"</div>"
 "</div>"
 
 "<script>"
+"let uid=new URLSearchParams(location.search).get('uid');"
+"let ws=new WebSocket(`ws://${location.host}`);"
 
-"let uid = new URLSearchParams(window.location.search).get('uid');"
-"document.getElementById('user').innerText = uid;"
+"let chat=document.getElementById('chat');"
+"let users=document.getElementById('users');"
 
-"let ws = new WebSocket(`ws://${location.host}`);"
-"const chat = document.getElementById('chat');"
+"ws.onopen=()=>ws.send('LOGIN:'+uid);"
+"ws.onmessage=e=>handle(e.data);"
 
-"ws.onopen = function(){ ws.send('LOGIN:'+uid); };"
-"ws.onmessage = function(event){ handleMsg(event.data); };"
+"function handle(d){"
+"if(d.startsWith('USERS:')){"
+"users.innerHTML='';"
+"d.substring(6).split(',').forEach(u=>{"
+"if(!u)return;"
+"let x=document.createElement('div');"
+"x.innerText=u;"
+"x.onclick=()=>document.getElementById('to').value=u;"
+"users.appendChild(x);"
+"});return;}"
 
-/* 🟡 BALL + ASCII LINES */
-"function dropBallAndShow(text, self, sender){"
-
-"  let lines = document.createElement('div');"
-"  lines.className = 'lines';"
-"  lines.innerText = '| |\\n  |\\n|\\n||';"
-
-"  let ball = document.createElement('div');"
-"  ball.className = 'ball';"
-"  ball.innerText = '(0)';"
-
-"  chat.appendChild(lines);"
-"  chat.appendChild(ball);"
-
-"  setTimeout(() => {"
-"    lines.remove();"
-"    ball.remove();"
-"    addMsg(text, self, sender);"
-"  }, 700);"
+"let p=d.split(':');"
+"add(p.slice(1).join(':'),false);"
 "}"
 
-"function addMsg(text, self, sender){"
-"  let box = document.createElement('div');"
-"  box.className = 'msg ' + (self ? 'me' : 'other');"
-
-"  if(!self){"
-"    let name = document.createElement('div');"
-"    name.className = 'name';"
-"    name.innerText = sender;"
-"    box.appendChild(name);"
-"  }"
-
-"  let content = document.createElement('div');"
-"  content.innerText = text;"
-"  box.appendChild(content);"
-
-"  chat.appendChild(box);"
-"  chat.scrollTop = chat.scrollHeight;"
-"}"
-
-"function handleMsg(data){"
-"  let parts = data.split(':');"
-"  let sender = parts[0];"
-"  let text = parts.slice(1).join(':').trim();"
-"  dropBallAndShow(text, sender===uid, sender);"
+"function add(t,self){"
+"let x=document.createElement('div');"
+"x.className='msg '+(self?'me':'other');"
+"x.innerText=t;"
+"chat.appendChild(x);"
+"chat.scrollTop=chat.scrollHeight;"
 "}"
 
 "function sendMsg(){"
-"  const to = document.getElementById('to').value;"
-"  const msg = document.getElementById('msg').value;"
-"  if(!to || !msg) return;"
-"  ws.send('MSG:'+to+':'+msg);"
-"  dropBallAndShow(msg, true, uid);"
-"  document.getElementById('msg').value='';"
+"let to=document.getElementById('to').value;"
+"let m=document.getElementById('msg').value;"
+"if(!to||!m)return;"
+"ws.send('MSG:'+to+':'+m);"
+"add(m,true);"
 "}"
 
-"document.getElementById('msg').addEventListener('keypress',function(e){"
-"  if(e.key==='Enter') sendMsg();"
-"});"
+"function gen(){"
+"fetch('/ascii',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:document.getElementById('botInput').value})})"
+".then(r=>r.text()).then(d=>document.getElementById('asciiOut').innerText=d);"
+"}"
+
+"function copy(){navigator.clipboard.writeText(document.getElementById('asciiOut').innerText);}"
+
+"function sendASCII(){"
+"let to=document.getElementById('to').value;"
+"let t=document.getElementById('asciiOut').innerText;"
+"if(!to||!t)return;"
+"ws.send('MSG:'+to+':'+t);"
+"}"
 
 "</script>"
 
 "</body></html>";
+
 #endif

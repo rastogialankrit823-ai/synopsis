@@ -1,5 +1,6 @@
 #include <iostream>
 #include <thread>
+#include <bits/stdc++.h>
 #include <map>
 #include <vector>
 #include <string>
@@ -14,8 +15,39 @@ using namespace std;
 
 map<string,string> ids;
 map<string,int> online;  
+map<string, vector<string>> inbox;
 static const string b64 =
 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+string ascii_simple(string s){
+    map<char, vector<string>> f = {
+        {'A', {"  /\\  "," /--\\ ","/    \\"}},
+        {'B', {"|~~\\ ","|--< ","|__/" }},
+        {'C', {" /~~","|   "," \\__"}},
+        {'H', {"|  |","|--|","|  |"}},
+        {'I', {"|||"," | ","|||"}},
+        {'O', {" /\\ ","|  |"," \\/ "}},
+        {'L', {"|   ","|   ","|___"}},
+        {'E', {"|---","|-- ","|___"}}
+    };
+
+    vector<string> res(3, "");
+
+    for(char c: s){
+        c = toupper(c);
+        if(f.count(c)){
+            for(int i=0;i<3;i++){
+                res[i] += f[c][i] + "  ";
+            }
+        } else {
+            for(int i=0;i<3;i++) res[i] += "    ";
+        }
+    }
+
+    string out="";
+    for(auto &r:res) out += r + "\n";
+    return out;
+}
 
 string base64_encode(const unsigned char* input, int len) {
     string out;
@@ -97,21 +129,38 @@ void handle_ws(int client,string req){
 
         // LOGIN
         if(msg.find("LOGIN:")==0){
-            uid = msg.substr(6);
-            online[uid]=client;
-            continue;
-        }
+    uid = msg.substr(6);
+    online[uid]=client;
 
-        // SEND MESSAGE
+    if(inbox.count(uid)){
+        string list="USERS:";
+        for(string u:inbox[uid]) list += u + ",";
+        ws_send(client,list);
+    }
+
+    continue;
+}
+
         if(msg.find("MSG:")==0){
-            int p = msg.find(":",4);
-            string to = msg.substr(4,p-4);
-            string text = msg.substr(p+1);
+    int p = msg.find(":",4);
+    string to = msg.substr(4,p-4);
+    string text = msg.substr(p+1);
 
-            if(online.count(to)){
-                ws_send(online[to], uid + ": " + text);
-            }
-        }
+    if(online.count(to)){
+        ws_send(online[to], uid + ": " + text);
+    }
+
+    if(find(inbox[to].begin(), inbox[to].end(), uid) == inbox[to].end()){
+        inbox[to].push_back(uid);
+    }
+
+
+    if(online.count(to)){
+        string list="USERS:";
+        for(string u:inbox[to]) list += u + ",";
+        ws_send(online[to], list);
+    }
+}
     }
 
     online.erase(uid);
@@ -158,6 +207,41 @@ void handle_http(int client,string req){
         ids[u]=p;
         send_http(client,"ok","text/plain");
     }
+    else if(req.find("POST /ascii")!=string::npos){
+    string body = req.substr(req.find("\r\n\r\n")+4);
+
+    string text = body.substr(body.find("text")+7);
+    text = text.substr(0,text.find("\""));
+
+    string result = ascii_simple(text);
+
+    send_http(client,result,"text/plain");
+   }
+   else if(req.find("GET /bg.jpg") != string::npos){
+    FILE *f = fopen("bg.jpg", "rb");
+    if(!f){
+        send_http(client, "Not Found", "text/plain");
+        return;
+    }
+
+    char buffer[4096];
+    string data;
+    int n;
+
+    while((n = fread(buffer,1,sizeof(buffer),f)) > 0){
+        data.append(buffer,n);
+    }
+
+    fclose(f);
+
+    string res =
+    "HTTP/1.1 200 OK\r\n"
+    "Content-Type: image/jpeg\r\n"
+    "Connection: close\r\n\r\n";
+
+    write(client, res.c_str(), res.size());
+    write(client, data.c_str(), data.size());
+}
 }
 
 int main(){
