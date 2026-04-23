@@ -1,55 +1,29 @@
 #include <iostream>
 #include <thread>
 #include <bits/stdc++.h>
-#include <map>
-#include <vector>
-#include <string>
-#include <cstring>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <openssl/sha.h>
 #include "htmls2.h"
+
 using namespace std;
 
 #define PORT 8080
 
 map<string,string> ids;
-map<string,int> online;  
-map<string, vector<string>> inbox;
+map<string,int> online;
+
+/*
+inbox[user][other] = vector of "sender:message"
+*/
+map<string, map<string, vector<string>>> inbox;
+
 static const string b64 =
 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-string ascii_simple(string s){
-    map<char, vector<string>> f = {
-        {'A', {"  /\\  "," /--\\ ","/    \\"}},
-        {'B', {"|~~\\ ","|--< ","|__/" }},
-        {'C', {" /~~","|   "," \\__"}},
-        {'H', {"|  |","|--|","|  |"}},
-        {'I', {"|||"," | ","|||"}},
-        {'O', {" /\\ ","|  |"," \\/ "}},
-        {'L', {"|   ","|   ","|___"}},
-        {'E', {"|---","|-- ","|___"}}
-    };
+/* ================= BASE64 ================= */
 
-    vector<string> res(3, "");
-
-    for(char c: s){
-        c = toupper(c);
-        if(f.count(c)){
-            for(int i=0;i<3;i++){
-                res[i] += f[c][i] + "  ";
-            }
-        } else {
-            for(int i=0;i<3;i++) res[i] += "    ";
-        }
-    }
-
-    string out="";
-    for(auto &r:res) out += r + "\n";
-    return out;
-}
-
-string base64_encode(const unsigned char* input, int len) {
+string base64_encode(const unsigned char* input, int len){
     string out;
     for(int i=0;i<len;i+=3){
         int val = (input[i]<<16) +
@@ -71,6 +45,7 @@ string ws_accept(string key){
     return base64_encode(hash, SHA_DIGEST_LENGTH);
 }
 
+/* ================= HTTP ================= */
 
 void send_http(int c,string body,string type="text/html"){
     string res =
@@ -81,8 +56,10 @@ void send_http(int c,string body,string type="text/html"){
     write(c,res.c_str(),res.size());
 }
 
+/* ================= WEBSOCKET ================= */
+
 void ws_send(int c,string msg){
-    unsigned char frame[2048];
+    unsigned char frame[4096];
     frame[0]=0x81;
     frame[1]=msg.size();
     memcpy(frame+2,msg.c_str(),msg.size());
@@ -90,8 +67,8 @@ void ws_send(int c,string msg){
 }
 
 string ws_read(int c){
-    unsigned char buf[2048];
-    int n=read(c,buf,2048);
+    unsigned char buf[4096];
+    int n=read(c,buf,4096);
     if(n<=0) return "";
 
     int len = buf[1]&127;
@@ -104,6 +81,31 @@ string ws_read(int c){
     }
     return msg;
 }
+
+/* ================= HELPERS ================= */
+
+void send_user_list(string uid){
+    if(!online.count(uid)) return;
+
+    string list="USERS:";
+    for(auto &p: inbox[uid]){
+        list += p.first + ",";
+    }
+
+    ws_send(online[uid], list);
+}
+
+void send_history(int client,string uid,string other){
+    string res="HISTORY:"+other+":";
+
+    for(string &m: inbox[uid][other]){
+        res += m + "|";
+    }
+
+    ws_send(client,res);
+}
+
+/* ================= WS HANDLER ================= */
 
 void handle_ws(int client,string req){
 
@@ -127,38 +129,49 @@ void handle_ws(int client,string req){
         string msg = ws_read(client);
         if(msg=="") break;
 
-        // LOGIN
+        /* LOGIN */
         if(msg.find("LOGIN:")==0){
-    uid = msg.substr(6);
-    online[uid]=client;
+            uid = msg.substr(6);
 
-    if(inbox.count(uid)){
-        string list="USERS:";
-        for(string u:inbox[uid]) list += u + ",";
-        ws_send(client,list);
-    }
+            if(uid.empty()) continue;
 
-    continue;
-}
+            online[uid]=client;
+            send_user_list(uid);
+            continue;
+        }
 
+        /* GET HISTORY */
+        if(msg.find("GET:")==0){
+            string other = msg.substr(4);
+            send_history(client,uid,other);
+            continue;
+        }
+
+        /* MESSAGE */
         if(msg.find("MSG:")==0){
+
     int p = msg.find(":",4);
     string to = msg.substr(4,p-4);
     string text = msg.substr(p+1);
 
+    if(to.empty() || text.empty()) return;
+
+    string from = uid;
+
+    string packet = "MSG|" + from + "|" + to + "|" + text;
+
+    inbox[to][from].push_back(from + ":" + text);
+
+    // send ONLY to receiver
     if(online.count(to)){
-        ws_send(online[to], uid + ": " + text);
+        ws_send(online[to], packet);
+        send_user_list(to);
     }
 
-    if(find(inbox[to].begin(), inbox[to].end(), uid) == inbox[to].end()){
-        inbox[to].push_back(uid);
-    }
-
-
-    if(online.count(to)){
-        string list="USERS:";
-        for(string u:inbox[to]) list += u + ",";
-        ws_send(online[to], list);
+    // ALSO send back to sender (but SAME FORMAT)
+    if(online.count(from)){
+        ws_send(online[from], packet);
+        send_user_list(from);
     }
 }
     }
@@ -167,10 +180,11 @@ void handle_ws(int client,string req){
     close(client);
 }
 
+/* ================= HTTP HANDLER ================= */
+
 void handle_http(int client,string req){
 
     if(req.find("GET / ")!=string::npos){
-        
         send_http(client,login);
     }
 
@@ -183,6 +197,7 @@ void handle_http(int client,string req){
     }
 
     else if(req.find("POST /login")!=string::npos){
+
         string body = req.substr(req.find("\r\n\r\n")+4);
 
         string u = body.substr(body.find("uid")+6);
@@ -191,11 +206,19 @@ void handle_http(int client,string req){
         string p = body.substr(body.find("pass")+7);
         p = p.substr(0,p.find("\""));
 
-        if(ids[u]==p) send_http(client,"ok","text/plain");
-        else send_http(client,"fail","text/plain");
+        if(u.empty() || p.empty()){
+            send_http(client,"fail","text/plain");
+            return;
+        }
+
+        if(ids.count(u) && ids[u]==p)
+            send_http(client,"ok","text/plain");
+        else
+            send_http(client,"fail","text/plain");
     }
 
     else if(req.find("POST /signup")!=string::npos){
+
         string body = req.substr(req.find("\r\n\r\n")+4);
 
         string u = body.substr(body.find("uid")+6);
@@ -203,48 +226,50 @@ void handle_http(int client,string req){
 
         string p = body.substr(body.find("pass")+7);
         p = p.substr(0,p.find("\""));
+
+        if(u.empty() || p.empty()){
+            send_http(client,"fail","text/plain");
+            return;
+        }
 
         ids[u]=p;
         send_http(client,"ok","text/plain");
     }
-    else if(req.find("POST /ascii")!=string::npos){
-    string body = req.substr(req.find("\r\n\r\n")+4);
 
-    string text = body.substr(body.find("text")+7);
-    text = text.substr(0,text.find("\""));
+    /* BACKGROUND IMAGE FIX */
+    else if(req.find("GET /bg.jpg")!=string::npos){
 
-    string result = ascii_simple(text);
+        FILE *f = fopen("bg.jpg","rb");
 
-    send_http(client,result,"text/plain");
-   }
-   else if(req.find("GET /bg.jpg") != string::npos){
-    FILE *f = fopen("bg.jpg", "rb");
-    if(!f){
-        send_http(client, "Not Found", "text/plain");
-        return;
+        if(!f){
+            send_http(client,"Not Found","text/plain");
+            return;
+        }
+
+        char buffer[4096];
+        string data;
+        int n;
+
+        while((n=fread(buffer,1,sizeof(buffer),f))>0){
+            data.append(buffer,n);
+        }
+
+        fclose(f);
+
+        string res =
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: image/jpeg\r\n"
+        "Connection: close\r\n\r\n";
+
+        write(client,res.c_str(),res.size());
+        write(client,data.c_str(),data.size());
     }
-
-    char buffer[4096];
-    string data;
-    int n;
-
-    while((n = fread(buffer,1,sizeof(buffer),f)) > 0){
-        data.append(buffer,n);
-    }
-
-    fclose(f);
-
-    string res =
-    "HTTP/1.1 200 OK\r\n"
-    "Content-Type: image/jpeg\r\n"
-    "Connection: close\r\n\r\n";
-
-    write(client, res.c_str(), res.size());
-    write(client, data.c_str(), data.size());
 }
-}
+
+/* ================= MAIN ================= */
 
 int main(){
+
     int server = socket(AF_INET,SOCK_STREAM,0);
 
     sockaddr_in addr;
@@ -253,7 +278,7 @@ int main(){
     addr.sin_addr.s_addr = INADDR_ANY;
 
     bind(server,(sockaddr*)&addr,sizeof(addr));
-    listen(server,10);
+    listen(server,100);
 
     cout<<"Server running on 8080\n";
 
@@ -261,6 +286,7 @@ int main(){
         int client = accept(server,NULL,NULL);
 
         thread([client](){
+
             char buf[4096];
             int n = read(client,buf,sizeof(buf));
             string req(buf,n);
@@ -271,6 +297,7 @@ int main(){
                 handle_http(client,req);
                 close(client);
             }
+
         }).detach();
     }
 }

@@ -1,42 +1,53 @@
-#ifndef HTMLS_H
-#define HTMLS_H
+#ifndef HTMLS2_H
+#define HTMLS2_H
 #include <string>
 
 /* ================= LOGIN ================= */
 
 std::string login =
 "<!DOCTYPE html>"
-"<html>"
-"<head>"
+"<html><head>"
 "<title>Login</title>"
 "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
 
 "<style>"
 "body{margin:0;font-family:Arial;height:100vh;display:flex;justify-content:center;align-items:center;"
-"background:url(\"bg.jpg\") center/cover no-repeat;}"
+"background:url('bg.jpg') center/cover no-repeat;overflow:hidden;}"
 
-"body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:-1;}"
+"body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);}"
 
+/* CARD */
 ".card{"
+"position:relative;"
 "background:rgba(255,255,255,0.08);"
-"backdrop-filter:blur(12px);"
-"padding:30px;"
-"border-radius:12px;"
+"backdrop-filter:blur(18px);"
+"border:1px solid rgba(255,255,255,0.15);"
+"padding:35px;"
+"border-radius:16px;"
 "color:white;"
-"width:300px;"
-"box-shadow:0 0 25px rgba(0,0,0,0.6);"
+"width:320px;"
+"box-shadow:0 10px 40px rgba(0,0,0,0.5);"
+"animation:fade .4s ease;"
 "}"
 
-"input{width:100%;padding:10px;margin:10px 0;border:none;border-radius:6px;}"
-"button{width:100%;padding:10px;background:#4caf50;border:none;border-radius:6px;color:white;cursor:pointer;}"
-".link{margin-top:10px;text-align:center;cursor:pointer;color:#4caf50;}"
-"#msg{text-align:center;color:#ff6b6b;}"
-"</style>"
-"</head>"
+"@keyframes fade{from{transform:translateY(10px);opacity:0;}to{transform:translateY(0);opacity:1;}}"
 
-"<body>"
+"h2{text-align:center;margin-bottom:20px;letter-spacing:1px;}"
+
+"input{width:100%;padding:12px;margin:10px 0;border:none;border-radius:8px;outline:none;"
+"background:rgba(255,255,255,0.15);color:white;}"
+
+"button{width:100%;padding:12px;border:none;border-radius:8px;"
+"background:linear-gradient(90deg,#4caf50,#2ecc71);color:white;font-weight:bold;cursor:pointer;}"
+
+".link{text-align:center;margin-top:10px;color:#4caf50;cursor:pointer;font-size:14px;}"
+
+"#msg{text-align:center;color:#ff6b6b;margin-top:8px;}"
+
+"</style></head><body>"
+
 "<div class='card'>"
-"<h2>Login</h2>"
+"<h2>LOGIN</h2>"
 "<input id='u' placeholder='User ID'>"
 "<input id='p' type='password' placeholder='Password'>"
 "<button onclick='login()'>Login</button>"
@@ -51,7 +62,7 @@ std::string login =
 "fetch('/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({uid:u,pass:p})})"
 ".then(r=>r.text()).then(d=>{"
 "if(d==='ok')location.href='/home?uid='+u;"
-"else document.getElementById('msg').innerText='Invalid';"
+"else document.getElementById('msg').innerText='Invalid credentials';"
 "});}"
 "function goSignup(){location.href='/signup';}"
 "</script>"
@@ -61,30 +72,43 @@ std::string login =
 /* ================= SIGNUP ================= */
 
 std::string signup =
-"<!DOCTYPE html>"
-"<html>"
-"<head>"
+"<!DOCTYPE html><html><head>"
 "<title>Signup</title>"
 "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
 
 "<style>"
 "body{margin:0;font-family:Arial;height:100vh;display:flex;justify-content:center;align-items:center;"
-"background:url(\"bg.jpg\") center/cover no-repeat;}"
+"background:url('bg.jpg') center/cover no-repeat;overflow:hidden;}"
+"body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);}"
 
-"body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:-1;}"
+/* CARD */
+".card{"
+"background:rgba(255,255,255,0.08);"
+"backdrop-filter:blur(18px);"
+"border:1px solid rgba(255,255,255,0.15);"
+"padding:35px;"
+"border-radius:16px;"
+"color:white;"
+"width:320px;"
+"box-shadow:0 10px 40px rgba(0,0,0,0.5);"
+"}"
 
-".card{background:rgba(255,255,255,0.08);backdrop-filter:blur(12px);padding:30px;border-radius:12px;color:white;width:300px;box-shadow:0 0 25px rgba(0,0,0,0.6);}"
+"h2{text-align:center;margin-bottom:20px;}"
 
-"input{width:100%;padding:10px;margin:10px 0;border:none;border-radius:6px;}"
-"button{width:100%;padding:10px;background:#4caf50;border:none;border-radius:6px;color:white;cursor:pointer;}"
-".link{margin-top:10px;text-align:center;cursor:pointer;color:#4caf50;}"
+"input{width:100%;padding:12px;margin:10px 0;border:none;border-radius:8px;"
+"background:rgba(255,255,255,0.15);color:white;}"
+
+"button{width:100%;padding:12px;border:none;border-radius:8px;"
+"background:linear-gradient(90deg,#4caf50,#2ecc71);color:white;font-weight:bold;cursor:pointer;}"
+
+".link{text-align:center;margin-top:10px;color:#4caf50;cursor:pointer;}"
+
 "#msg{text-align:center;color:#90ee90;}"
-"</style>"
-"</head>"
 
-"<body>"
+"</style></head><body>"
+
 "<div class='card'>"
-"<h2>Sign Up</h2>"
+"<h2>SIGN UP</h2>"
 "<input id='u' placeholder='User ID'>"
 "<input id='p' type='password' placeholder='Password'>"
 "<button onclick='signup()'>Create</button>"
@@ -98,54 +122,93 @@ std::string signup =
 "let p=document.getElementById('p').value;"
 "fetch('/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({uid:u,pass:p})})"
 ".then(r=>r.text()).then(d=>{"
-"if(d==='ok'){document.getElementById('msg').innerText='Created';setTimeout(()=>location.href='/',1000);}"
+"if(d==='ok'){document.getElementById('msg').innerText='Account created';setTimeout(()=>location.href='/',1000);}"
 "});}"
 "function goLogin(){location.href='/';}"
 "</script>"
 
 "</body></html>";
 
-/* ================= HOME ================= */
+/* ================= HOME (MAIN UPGRADE) ================= */
 
 std::string home =
-"<!DOCTYPE html>"
-"<html>"
-"<head>"
+"<!DOCTYPE html><html><head>"
 "<title>Chat</title>"
 "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
 
 "<style>"
+
 "body{margin:0;font-family:Arial;height:100vh;display:flex;"
-"background:url(\"bg.jpg\") center/cover no-repeat;}"
+"background:url('bg.jpg') center/cover no-repeat;overflow:hidden;}"
 
-"body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:-1;}"
+"body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.6);}"
 
-".container{display:flex;width:100vw;height:100vh;background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);}"
+/* MAIN LAYOUT */
+".container{display:flex;width:100vw;height:100vh;position:relative;}"
 
-/* SIDEBAR */
-".users{width:220px;background:rgba(0,0,0,0.5);padding:10px;color:white;overflow:auto;}"
-".users div{padding:8px;border-bottom:1px solid #333;cursor:pointer;}"
-".users div:hover{background:#222;}"
+/* USERS PANEL */
+".users{width:250px;backdrop-filter:blur(15px);"
+"background:rgba(0,0,0,0.45);color:white;padding:10px;overflow:auto;"
+"border-right:1px solid rgba(255,255,255,0.1);} "
 
-/* CHAT */
-".chatbox{flex:1;display:flex;flex-direction:column;padding:10px;color:white;}"
-".chat{flex:1;background:rgba(0,0,0,0.4);padding:10px;border-radius:8px;overflow:auto;display:flex;flex-direction:column;}"
+".user{"
+"padding:10px;margin:5px 0;border-radius:8px;cursor:pointer;"
+"background:rgba(255,255,255,0.08);transition:.2s;"
+"}"
 
-".msg{padding:8px;margin:5px 0;border-radius:8px;max-width:70%;}"
-".me{background:#4caf50;margin-left:auto;}"
-".other{background:#444;}"
+".user:hover{background:rgba(76,175,80,0.4);}"
 
-/* INPUT ROW */
-".row{display:flex;gap:5px;margin-top:5px;}"
-".row input{flex:1;padding:10px;border:none;border-radius:6px;}"
-".row button{width:80px;background:#4caf50;border:none;border-radius:6px;color:white;cursor:pointer;}"
+/* ACTIVE USER (BLUE OUTLINE) */
+".active{"
+"border:2px solid #2196f3;"
+"background:rgba(33,150,243,0.15);"
+"}"
 
-/* ASCII */
-".ascii{background:#000;color:#00ff90;font-family:monospace;padding:10px;margin-top:10px;border-radius:6px;height:120px;overflow:auto;white-space:pre;}"
-"</style>"
-"</head>"
+/* CHAT AREA */
+".chatbox{flex:1;display:flex;flex-direction:column;padding:15px;color:white;}"
 
-"<body>"
+/* TOP BAR */
+".topbar{"
+"padding:10px 15px;margin-bottom:10px;"
+"background:rgba(255,255,255,0.08);"
+"backdrop-filter:blur(10px);"
+"border-radius:10px;"
+"font-weight:bold;"
+"}"
+
+/* CHAT WINDOW */
+".chat{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px;}"
+
+/* MESSAGES */
+".msg{max-width:65%;padding:10px;border-radius:12px;"
+"word-wrap:break-word;animation:pop .2s ease;}"
+
+"@keyframes pop{from{transform:scale(0.95);opacity:0;}to{transform:scale(1);opacity:1;}}"
+
+/* SENDER = BLUE TRANSLUCENT */
+".me{align-self:flex-end;"
+"background:rgba(33,150,243,0.35);"
+"backdrop-filter:blur(10px);"
+"border:1px solid rgba(33,150,243,0.5);"
+"}"
+
+/* RECEIVER = GREEN TRANSLUCENT */
+".other{align-self:flex-start;"
+"background:rgba(76,175,80,0.25);"
+"backdrop-filter:blur(10px);"
+"border:1px solid rgba(76,175,80,0.4);"
+"}"
+
+/* INPUT */
+".row{display:flex;gap:8px;margin-top:10px;}"
+
+".row input{flex:1;padding:12px;border:none;border-radius:8px;"
+"background:rgba(255,255,255,0.15);color:white;outline:none;}"
+
+".row button{width:90px;border:none;border-radius:8px;"
+"background:#2196f3;color:white;font-weight:bold;cursor:pointer;}"
+
+"</style></head><body>"
 
 "<div class='container'>"
 
@@ -155,7 +218,10 @@ std::string home =
 /* CHAT */
 "<div class='chatbox'>"
 
-"<input id='to' placeholder='Send to user'>"
+"<div id='top' class='topbar'>Chatting with: None</div>"
+
+/* IMPORTANT FIX: NO readonly, but NOT editable needed */
+"<input id='to' placeholder='Click a user from left panel' style='cursor:pointer;'>"
 
 "<div id='chat' class='chat'></div>"
 
@@ -164,43 +230,60 @@ std::string home =
 "<button onclick='sendMsg()'>Send</button>"
 "</div>"
 
-/* ASCII */
-"<input id='botInput' placeholder='ASCII text'>"
-"<button onclick='gen()'>Generate</button>"
-
-"<div id='asciiOut' class='ascii'></div>"
-
-"<button onclick='copy()'>Copy</button>"
-"<button onclick='sendASCII()'>Send ASCII</button>"
-
-"</div>"
-"</div>"
+"</div></div>"
 
 "<script>"
+
 "let uid=new URLSearchParams(location.search).get('uid');"
 "let ws=new WebSocket(`ws://${location.host}`);"
 
 "let chat=document.getElementById('chat');"
 "let users=document.getElementById('users');"
+"let topbar=document.getElementById('top');"
 
 "ws.onopen=()=>ws.send('LOGIN:'+uid);"
 "ws.onmessage=e=>handle(e.data);"
 
+/* HANDLE SERVER DATA */
 "function handle(d){"
+
 "if(d.startsWith('USERS:')){"
 "users.innerHTML='';"
 "d.substring(6).split(',').forEach(u=>{"
 "if(!u)return;"
 "let x=document.createElement('div');"
 "x.innerText=u;"
-"x.onclick=()=>document.getElementById('to').value=u;"
-"users.appendChild(x);"
-"});return;}"
+"x.className='user';"
 
-"let p=d.split(':');"
-"add(p.slice(1).join(':'),false);"
+"x.onclick=()=>selectUser(x,u);"
+
+"users.appendChild(x);"
+"});"
+"return;"
 "}"
 
+"if(d.startsWith('MSG|')){"
+"let p=d.split('|');"
+
+"let from=p[1];"
+"let text=p.slice(3).join('|');"
+
+"add(from+': '+text, from===uid);"
+"}"
+"}"
+
+/* SELECT USER */
+"function selectUser(el,u){"
+
+"document.querySelectorAll('.user').forEach(x=>x.classList.remove('active'));"
+"el.classList.add('active');"
+
+"document.getElementById('to').value=u;"
+"topbar.innerText='Chatting with: '+u;"
+
+"}"
+
+/* ADD MESSAGE */
 "function add(t,self){"
 "let x=document.createElement('div');"
 "x.className='msg '+(self?'me':'other');"
@@ -209,30 +292,13 @@ std::string home =
 "chat.scrollTop=chat.scrollHeight;"
 "}"
 
+/* SEND MESSAGE */
 "function sendMsg(){"
 "let to=document.getElementById('to').value;"
 "let m=document.getElementById('msg').value;"
 "if(!to||!m)return;"
 "ws.send('MSG:'+to+':'+m);"
-"add(m,true);"
 "}"
 
-"function gen(){"
-"fetch('/ascii',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:document.getElementById('botInput').value})})"
-".then(r=>r.text()).then(d=>document.getElementById('asciiOut').innerText=d);"
-"}"
-
-"function copy(){navigator.clipboard.writeText(document.getElementById('asciiOut').innerText);}"
-
-"function sendASCII(){"
-"let to=document.getElementById('to').value;"
-"let t=document.getElementById('asciiOut').innerText;"
-"if(!to||!t)return;"
-"ws.send('MSG:'+to+':'+t);"
-"}"
-
-"</script>"
-
-"</body></html>";
-
+"</script></body></html>";
 #endif
