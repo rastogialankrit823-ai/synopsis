@@ -1,9 +1,7 @@
 #ifndef HTMLS_H
 #define HTMLS_H
-#include <cstring>
-#define str string
-using namespace std;
- str login =
+#include <string>
+ std::string login =
 "<!DOCTYPE html>"
 "<html>"
 "<head><title>Login</title></head>"
@@ -40,52 +38,61 @@ using namespace std;
 
 
 
-str home =
+std::string home =
 "<!DOCTYPE html>"
-"<html>"
-"<head><title>you have logged in successfully</title></head>"
-"<body>"
-"<h1><b>yo</b></h1>"
-"<input id='u' placeholder='TO'><br><br>"
-"<input id='p' type='password' placeholder='TEXT'><br><br>"
-"<button onclick='sendMsg()'>SEND</button>"
-"<p id='msg' style='color:red;'></p>"
+"<html><body>"
+"<h2>Welcome</h2>"
+"<div style='display:flex;'>"
+"<div style='width:30%;border-right:1px solid black;'>"
+"<h3>Friends</h3>"
+"<ul id='friends'></ul>"
+"</div>"
+"<div style='width:70%;padding-left:10px;'>"
+"<h3>Messages</h3>"
+"<div id='chat' style='height:200px;overflow:auto;border:1px solid black;'></div><br>"
+"<input id='to' placeholder='To'><br>"
+"<input id='msg' placeholder='Message'><br>"
+"<button onclick='sendMsg()'>Send</button>"
+"</div>"
+"</div>"
 "<script>"
-"function login(){"
-"const uid=document.getElementById('u').value;"
-"const pass=document.getElementById('p').value;"
-"fetch('/home',{"
-"method:'POST',"
-"headers:{'Content-Type':'application/json'},"
-"body:JSON.stringify({uid:uid,pass:pass})"
-"})"
+"function loadFriends(){"
+"fetch('/friends')"
 ".then(r=>r.text())"
 ".then(data=>{"
+"let arr = data.split('\\n');"
+"let list='';"
+"arr.forEach(f=>{ if(f) list += '<li>'+f+'</li>'; });"
+"document.getElementById('friends').innerHTML = list;"
+"});"
+"}"
+"function loadMessages(){"
+"fetch('/get')"
+".then(r=>r.text())"
+".then(data=>{"
+"if(data){"
+"document.getElementById('chat').innerHTML += data + '<br>';"
 "}"
 "});"
 "}"
 "function sendMsg(){"
-    "const to = document.getElementById('u').value;"
-    "const msg = document.getElementById('p').value;"
-
-    "fetch('/home',{"
-        "method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({uid:to, pass:msg})});}"
-
-"setInterval(()=>{"
-    "fetch('/get')"
-    ".then(r=>r.text())"
-    ".then(data=>{"
-        "if(data){"
-            "document.getElementById('msg').innerText += data + '\n';"
-        "}"
-    "});"
-"},200);"
-
+"const to=document.getElementById('to').value;"
+"const msg=document.getElementById('msg').value;"
+"fetch('/home',{"
+"method:'POST',"
+"headers:{'Content-Type':'application/json'},"
+"body:JSON.stringify({uid:to,pass:msg})"
+"});"
+"}"
+"setInterval(loadMessages,200);"
+"setInterval(loadFriends,500);"
+"loadFriends();"
+"loadMessages();"
 "</script>"
 "</body></html>";
 
 
-str sign =
+std::string sign =
 "<!DOCTYPE html>"
 "<html>"
 "<head><title>Sign Up</title></head>"

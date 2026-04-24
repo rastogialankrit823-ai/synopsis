@@ -13,15 +13,12 @@ using namespace std;
 map<string,string> ids;
 map<string,int> online;
 
-/*
-inbox[user][other] = vector of "sender:message"
-*/
+
 map<string, map<string, vector<string>>> inbox;
 
 static const string b64 =
 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-/* ================= BASE64 ================= */
 
 string base64_encode(const unsigned char* input, int len){
     string out;
@@ -45,7 +42,6 @@ string ws_accept(string key){
     return base64_encode(hash, SHA_DIGEST_LENGTH);
 }
 
-/* ================= HTTP ================= */
 
 void send_http(int c,string body,string type="text/html"){
     string res =
@@ -56,7 +52,6 @@ void send_http(int c,string body,string type="text/html"){
     write(c,res.c_str(),res.size());
 }
 
-/* ================= WEBSOCKET ================= */
 
 void ws_send(int c,string msg){
     unsigned char frame[4096];
@@ -82,7 +77,6 @@ string ws_read(int c){
     return msg;
 }
 
-/* ================= HELPERS ================= */
 
 void send_user_list(string uid){
     if(!online.count(uid)) return;
@@ -105,7 +99,6 @@ void send_history(int client,string uid,string other){
     ws_send(client,res);
 }
 
-/* ================= WS HANDLER ================= */
 
 void handle_ws(int client,string req){
 
@@ -129,10 +122,9 @@ void handle_ws(int client,string req){
         string msg = ws_read(client);
         if(msg=="") break;
 
-        /* LOGIN */
+        
         if(msg.find("LOGIN:")==0){
             uid = msg.substr(6);
-
             if(uid.empty()) continue;
 
             online[uid]=client;
@@ -140,47 +132,44 @@ void handle_ws(int client,string req){
             continue;
         }
 
-        /* GET HISTORY */
+        
         if(msg.find("GET:")==0){
             string other = msg.substr(4);
             send_history(client,uid,other);
             continue;
         }
 
-        /* MESSAGE */
         if(msg.find("MSG:")==0){
 
-    int p = msg.find(":",4);
-    string to = msg.substr(4,p-4);
-    string text = msg.substr(p+1);
+            int p = msg.find(":",4);
+            string to = msg.substr(4,p-4);
+            string text = msg.substr(p+1);
 
-    if(to.empty() || text.empty()) return;
+            if(to.empty() || text.empty()) continue;
 
-    string from = uid;
+            string from = uid;
 
-    string packet = "MSG|" + from + "|" + to + "|" + text;
+            string packet = "MSG|" + from + "|" + to + "|" + text;
 
-    inbox[to][from].push_back(from + ":" + text);
+            inbox[to][from].push_back(from + ":" + text);
+            inbox[from][to].push_back(from + ":" + text);
 
-    // send ONLY to receiver
-    if(online.count(to)){
-        ws_send(online[to], packet);
-        send_user_list(to);
-    }
+            if(online.count(to)){
+                ws_send(online[to], packet);
+                send_user_list(to);
+            }
 
-    // ALSO send back to sender (but SAME FORMAT)
-    if(online.count(from)){
-        ws_send(online[from], packet);
-        send_user_list(from);
-    }
-}
+            if(online.count(from)){
+                ws_send(online[from], packet);
+                send_user_list(from);
+            }
+        }
     }
 
     online.erase(uid);
     close(client);
 }
 
-/* ================= HTTP HANDLER ================= */
 
 void handle_http(int client,string req){
 
@@ -236,7 +225,6 @@ void handle_http(int client,string req){
         send_http(client,"ok","text/plain");
     }
 
-    /* BACKGROUND IMAGE FIX */
     else if(req.find("GET /bg.jpg")!=string::npos){
 
         FILE *f = fopen("bg.jpg","rb");
@@ -266,7 +254,7 @@ void handle_http(int client,string req){
     }
 }
 
-/* ================= MAIN ================= */
+
 
 int main(){
 

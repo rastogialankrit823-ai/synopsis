@@ -2,7 +2,6 @@
 #define HTMLS2_H
 #include <string>
 
-/* ================= LOGIN ================= */
 
 std::string login =
 "<!DOCTYPE html>"
@@ -16,7 +15,6 @@ std::string login =
 
 "body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);}"
 
-/* CARD */
 ".card{"
 "position:relative;"
 "background:rgba(255,255,255,0.08);"
@@ -69,8 +67,7 @@ std::string login =
 
 "</body></html>";
 
-/* ================= SIGNUP ================= */
-
+ 
 std::string signup =
 "<!DOCTYPE html><html><head>"
 "<title>Signup</title>"
@@ -81,7 +78,6 @@ std::string signup =
 "background:url('bg.jpg') center/cover no-repeat;overflow:hidden;}"
 "body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);}"
 
-/* CARD */
 ".card{"
 "background:rgba(255,255,255,0.08);"
 "backdrop-filter:blur(18px);"
@@ -129,8 +125,7 @@ std::string signup =
 
 "</body></html>";
 
-/* ================= HOME (MAIN UPGRADE) ================= */
-
+ 
 std::string home =
 "<!DOCTYPE html><html><head>"
 "<title>Chat</title>"
@@ -143,67 +138,47 @@ std::string home =
 
 "body::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,0.6);}"
 
-/* MAIN LAYOUT */
+
 ".container{display:flex;width:100vw;height:100vh;position:relative;}"
 
-/* USERS PANEL */
+
 ".users{width:250px;backdrop-filter:blur(15px);"
 "background:rgba(0,0,0,0.45);color:white;padding:10px;overflow:auto;"
 "border-right:1px solid rgba(255,255,255,0.1);} "
 
-".user{"
-"padding:10px;margin:5px 0;border-radius:8px;cursor:pointer;"
-"background:rgba(255,255,255,0.08);transition:.2s;"
-"}"
+".user{padding:10px;margin:5px 0;border-radius:8px;cursor:pointer;"
+"background:rgba(255,255,255,0.08);transition:.2s;}"
 
 ".user:hover{background:rgba(76,175,80,0.4);}"
 
-/* ACTIVE USER (BLUE OUTLINE) */
-".active{"
-"border:2px solid #2196f3;"
-"background:rgba(33,150,243,0.15);"
-"}"
 
-/* CHAT AREA */
+".active{border:2px solid #2196f3;background:rgba(33,150,243,0.15);}"
+
+
 ".chatbox{flex:1;display:flex;flex-direction:column;padding:15px;color:white;}"
 
-/* TOP BAR */
-".topbar{"
-"padding:10px 15px;margin-bottom:10px;"
-"background:rgba(255,255,255,0.08);"
-"backdrop-filter:blur(10px);"
-"border-radius:10px;"
-"font-weight:bold;"
-"}"
 
-/* CHAT WINDOW */
+".topbar{padding:10px 15px;margin-bottom:10px;"
+"background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);"
+"border-radius:10px;font-weight:bold;}"
+
+
 ".chat{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:8px;}"
 
-/* MESSAGES */
-".msg{max-width:65%;padding:10px;border-radius:12px;"
-"word-wrap:break-word;animation:pop .2s ease;}"
 
-"@keyframes pop{from{transform:scale(0.95);opacity:0;}to{transform:scale(1);opacity:1;}}"
+".msg{max-width:65%;padding:10px;border-radius:12px;word-wrap:break-word;}"
 
-/* SENDER = BLUE TRANSLUCENT */
-".me{align-self:flex-end;"
-"background:rgba(33,150,243,0.35);"
-"backdrop-filter:blur(10px);"
-"border:1px solid rgba(33,150,243,0.5);"
-"}"
+".me{align-self:flex-end;background:rgba(33,150,243,0.35);}"
+".other{align-self:flex-start;background:rgba(76,175,80,0.25);}"
 
-/* RECEIVER = GREEN TRANSLUCENT */
-".other{align-self:flex-start;"
-"background:rgba(76,175,80,0.25);"
-"backdrop-filter:blur(10px);"
-"border:1px solid rgba(76,175,80,0.4);"
-"}"
 
-/* INPUT */
 ".row{display:flex;gap:8px;margin-top:10px;}"
 
-".row input{flex:1;padding:12px;border:none;border-radius:8px;"
-"background:rgba(255,255,255,0.15);color:white;outline:none;}"
+"#to{width:150px;padding:12px;border:none;border-radius:8px;"
+"background:rgba(255,255,255,0.15);color:white;}"
+
+"#msg{flex:1;padding:12px;border:none;border-radius:8px;"
+"background:rgba(255,255,255,0.15);color:white;}"
 
 ".row button{width:90px;border:none;border-radius:8px;"
 "background:#2196f3;color:white;font-weight:bold;cursor:pointer;}"
@@ -212,20 +187,19 @@ std::string home =
 
 "<div class='container'>"
 
-/* USERS */
+
 "<div id='users' class='users'></div>"
 
-/* CHAT */
+
 "<div class='chatbox'>"
 
 "<div id='top' class='topbar'>Chatting with: None</div>"
 
-/* IMPORTANT FIX: NO readonly, but NOT editable needed */
-"<input id='to' placeholder='Click a user from left panel' style='cursor:pointer;'>"
+"<div class='chat' id='chat'></div>"
 
-"<div id='chat' class='chat'></div>"
 
 "<div class='row'>"
+"<input id='to' placeholder='User'>"
 "<input id='msg' placeholder='Message'>"
 "<button onclick='sendMsg()'>Send</button>"
 "</div>"
@@ -241,10 +215,13 @@ std::string home =
 "let users=document.getElementById('users');"
 "let topbar=document.getElementById('top');"
 
+"let current=null;"
+"let history={};"   
+
 "ws.onopen=()=>ws.send('LOGIN:'+uid);"
 "ws.onmessage=e=>handle(e.data);"
 
-/* HANDLE SERVER DATA */
+
 "function handle(d){"
 
 "if(d.startsWith('USERS:')){"
@@ -254,36 +231,47 @@ std::string home =
 "let x=document.createElement('div');"
 "x.innerText=u;"
 "x.className='user';"
-
 "x.onclick=()=>selectUser(x,u);"
-
 "users.appendChild(x);"
-"});"
-"return;"
-"}"
+"});return;}"
+
 
 "if(d.startsWith('MSG|')){"
 "let p=d.split('|');"
-
 "let from=p[1];"
+"let to=p[2];"
 "let text=p.slice(3).join('|');"
 
-"add(from+': '+text, from===uid);"
+"let other = (from===uid)?to:from;"
+
+
+"if(!history[other])history[other]=[];"
+"history[other].push({text:text,self:(from===uid)});"
+
+
+"if(current===other)add(text,(from===uid));"
 "}"
 "}"
 
-/* SELECT USER */
+
 "function selectUser(el,u){"
 
 "document.querySelectorAll('.user').forEach(x=>x.classList.remove('active'));"
 "el.classList.add('active');"
 
+"current=u;"
 "document.getElementById('to').value=u;"
 "topbar.innerText='Chatting with: '+u;"
 
+"chat.innerHTML='';"
+
+
+"if(history[u]){"
+"history[u].forEach(m=>add(m.text,m.self));"
+"}"
 "}"
 
-/* ADD MESSAGE */
+
 "function add(t,self){"
 "let x=document.createElement('div');"
 "x.className='msg '+(self?'me':'other');"
@@ -292,7 +280,7 @@ std::string home =
 "chat.scrollTop=chat.scrollHeight;"
 "}"
 
-/* SEND MESSAGE */
+
 "function sendMsg(){"
 "let to=document.getElementById('to').value;"
 "let m=document.getElementById('msg').value;"
