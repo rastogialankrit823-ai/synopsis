@@ -14,16 +14,16 @@ using namespace std;
 
 #define PORT 8080
 
-/* ================= GLOBAL DATA ================= */
+
 
 map<string,string> ids;
 map<string,int> online;
 map<string, map<string, vector<string>>> inbox;
 
-/* ================= FILE THREAD ================= */
+
 
 struct Task{
-    int type; // 1 = msg, 2 = ids
+    int type;
     string u,v,msg;
 };
 
@@ -31,7 +31,7 @@ queue<Task> q;
 mutex mtx;
 condition_variable cv;
 
-/* ================= BASE64 ================= */
+
 
 static const string b64 =
 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -58,7 +58,7 @@ string ws_accept(string key){
     return base64_encode(hash, SHA_DIGEST_LENGTH);
 }
 
-/* ================= FILE FUNCTIONS ================= */
+
 
 void load_ids(){
     ifstream f("ids.txt");
@@ -84,7 +84,7 @@ void load_msgs(){
     cout<<"Messages loaded\n";
 }
 
-/* ================= FILE THREAD ================= */
+
 
 void file_worker(){
     while(true){
@@ -108,7 +108,7 @@ void file_worker(){
     }
 }
 
-/* ================= HTTP ================= */
+
 
 void send_http(int c,string body,string type="text/html"){
     string res =
@@ -119,7 +119,7 @@ void send_http(int c,string body,string type="text/html"){
     write(c,res.c_str(),res.size());
 }
 
-/* ================= WS ================= */
+
 
 void ws_send(int c,string msg){
     unsigned char frame[4096];
@@ -145,7 +145,7 @@ string ws_read(int c){
     return msg;
 }
 
-/* ================= HELPERS ================= */
+
 
 void send_user_list(string uid){
     if(!online.count(uid)) return;
@@ -167,7 +167,7 @@ void send_history(int client,string uid,string other){
     ws_send(client,res);
 }
 
-/* ================= WS HANDLER ================= */
+
 
 void handle_ws(int client,string req){
 
@@ -259,7 +259,7 @@ void handle_ws(int client,string req){
     close(client);
 }
 
-/* ================= HTTP HANDLER ================= */
+
 
 void handle_http(int client,string req){
 
@@ -347,7 +347,6 @@ void handle_http(int client,string req){
     }
 }
 
-/* ================= MAIN ================= */
 
 int main(){
 

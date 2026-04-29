@@ -22,7 +22,7 @@ std::string login =
 "border:1px solid rgba(255,255,255,0.15);"
 "padding:35px;"
 "border-radius:16px;"
-"color:white;"
+"color:#fff;"
 "width:320px;"
 "box-shadow:0 10px 40px rgba(0,0,0,0.5);"
 "animation:fade .4s ease;"
@@ -33,10 +33,10 @@ std::string login =
 "h2{text-align:center;margin-bottom:20px;letter-spacing:1px;}"
 
 "input{width:100%;padding:12px;margin:10px 0;border:none;border-radius:8px;outline:none;"
-"background:rgba(255,255,255,0.15);color:white;}"
+"background:rgba(255,255,255,0.15);color:#fff;}"
 
 "button{width:100%;padding:12px;border:none;border-radius:8px;"
-"background:linear-gradient(90deg,#4caf50,#2ecc71);color:white;font-weight:bold;cursor:pointer;}"
+"background:linear-gradient(90deg,#4caf50,#2ecc71);color:#fff;font-weight:bold;cursor:pointer;}"
 
 ".link{text-align:center;margin-top:10px;color:#4caf50;cursor:pointer;font-size:14px;}"
 
@@ -81,10 +81,10 @@ std::string signup =
 ".card{"
 "background:rgba(255,255,255,0.08);"
 "backdrop-filter:blur(18px);"
-"border:1px solid rgba(255,255,255,0.15);"
+"border:1px solid rgba(255, 255, 255, 0.25);"
 "padding:35px;"
 "border-radius:16px;"
-"color:white;"
+"color:#fff;"
 "width:320px;"
 "box-shadow:0 10px 40px rgba(0,0,0,0.5);"
 "}"
@@ -92,10 +92,10 @@ std::string signup =
 "h2{text-align:center;margin-bottom:20px;}"
 
 "input{width:100%;padding:12px;margin:10px 0;border:none;border-radius:8px;"
-"background:rgba(255,255,255,0.15);color:white;}"
+"background:rgba(255,255,255,0.15);color:#fff;}"
 
 "button{width:100%;padding:12px;border:none;border-radius:8px;"
-"background:linear-gradient(90deg,#4caf50,#2ecc71);color:white;font-weight:bold;cursor:pointer;}"
+"background:linear-gradient(90deg,#4caf50,#2ecc71);color:#fff;font-weight:bold;cursor:pointer;}"
 
 ".link{text-align:center;margin-top:10px;color:#4caf50;cursor:pointer;}"
 
@@ -136,13 +136,13 @@ std::string home =
 "body{margin:0;font-family:Arial;height:100vh;display:flex;"
 "background:url('bg.jpg') center/cover no-repeat;overflow:hidden;}"
 
-"body::before{content:'';position:fixed;inset:0;background:rgba(0, 0, 0, 0.66);pointer-events:none;}"
+"body::before{content:'';position:fixed;inset:0;background:rgba(0, 0, 0, 0.18);pointer-events:none;}"
 
 ".container{display:flex;width:100vw;height:100vh;}"
 
 /* USERS PANEL */
 ".users{width:250px;background:rgba(0, 0, 0, 0.68);backdrop-filter:blur(15px);"
-"color:white;padding:10px;overflow-y:auto;border-right:1px solid rgba(255, 255, 255, 0.52);} "
+"color:#fff;padding:10px;overflow-y:auto;border-right:1px solid rgba(255, 255, 255, 0.52);} "
 
 ".user{padding:10px;margin:5px 0;border-radius:8px;cursor:pointer;"
 "background:rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;}"
@@ -159,30 +159,39 @@ std::string home =
 ".unread{width:8px;height:8px;background:#2196f3;border-radius:50%;display:inline-block;margin-left:5px;}"
 
 /* CHAT */
-".chatbox{flex:1;display:flex;flex-direction:column;color:white;}"
+".chatbox{flex:1;display:flex;flex-direction:column;color:#fff;}"
 
-".topbar{padding:10px;margin:10px;background:rgba(255, 255, 255, 0.44);border-radius:10px;}"
+".topbar{padding:10px;margin:10px;background:rgba(255, 255, 255, 0.36);border-radius:10px;}"
 
 ".chat{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;}"
 
 /* MESSAGE COLORS (FIXED AS YOU SAID) */
 ".msg{max-width:65%;padding:10px;border-radius:12px;white-space:pre-wrap;"
-"color:#fff;display:flex;justify-content:space-between;align-items:center;}"
+"color:#fff;display:flex;justify-content:space-between;align-items:center;text-shadow:0 1px 1px rgba(0,0,0,0.3);box-shadow:0 4px 12px rgba(0,0,0,0.3);}"
 
 /* YOU → GREEN */
-".me{align-self:flex-end;background:rgba(73, 232, 78, 0.98);color:white;}"
 
-/* OTHER → BLUE */
-".other{align-self:flex-start;background:rgba(33, 149, 243, 0.94);color:white;}"
+".me{"
+"    align-self:flex-end;"
+"    background:linear-gradient(135deg,#00c853,#43ea7a);"
+"    color:white;"
+"}"
 
-/* INPUT (SAME THEME AS YOUR ORIGINAL) */
+".other{"
+"    align-self:flex-start;"
+"    background:linear-gradient(135deg,#2962ff,#448aff);"
+"    color:white;"
+"}"
+
+
+
 ".inputbar{display:flex;gap:8px;padding:10px;margin:10px;"
-"background:rgba(11, 0, 0, 0.29);border-radius:10px;}"
+"background:rgba(11, 0, 0, 0.49);border-radius:10px;}"
 
 ".inputbar input,.inputbar textarea{"
 "border:none;border-radius:8px;"
-"background:rgba(5, 5, 5, 0.36);"
-"color:white;outline:none;padding:10px;"
+"background:rgba(5, 5, 5, 0.92);"
+"color:#fff;outline:none;padding:10px;"
 "}"
 
 "#to{width:130px;}"
@@ -190,7 +199,7 @@ std::string home =
 "#msg{flex:1;resize:none;min-height:40px;max-height:120px;overflow-y:auto;}"
 
 ".inputbar button{width:90px;border:none;border-radius:8px;"
-"background:#4caf50;color:white;cursor:pointer;}"
+"background:#4caf50;color:#fff;cursor:pointer;}"
 
 "</style></head><body>"
 
