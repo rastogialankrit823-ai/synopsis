@@ -4,21 +4,37 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <openssl/sha.h>
+#include <fstream>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
 #include "htmls2.h"
 
 using namespace std;
 
 #define PORT 8080
 
+/* ================= GLOBAL DATA ================= */
+
 map<string,string> ids;
 map<string,int> online;
-
-
 map<string, map<string, vector<string>>> inbox;
+
+/* ================= FILE THREAD ================= */
+
+struct Task{
+    int type; // 1 = msg, 2 = ids
+    string u,v,msg;
+};
+
+queue<Task> q;
+mutex mtx;
+condition_variable cv;
+
+/* ================= BASE64 ================= */
 
 static const string b64 =
 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
 
 string base64_encode(const unsigned char* input, int len){
     string out;
@@ -42,6 +58,57 @@ string ws_accept(string key){
     return base64_encode(hash, SHA_DIGEST_LENGTH);
 }
 
+/* ================= FILE FUNCTIONS ================= */
+
+void load_ids(){
+    ifstream f("ids.txt");
+    string u,p;
+    while(f>>u>>p) ids[u]=p;
+    cout<<"IDs loaded\n";
+}
+
+void load_msgs(){
+    ifstream f("inbox.txt");
+    string line;
+    while(getline(f,line)){
+        int p1=line.find('|');
+        int p2=line.find('|',p1+1);
+        if(p1==string::npos || p2==string::npos) continue;
+
+        string u=line.substr(0,p1);
+        string v=line.substr(p1+1,p2-p1-1);
+        string m=line.substr(p2+1);
+
+        inbox[u][v].push_back(m);
+    }
+    cout<<"Messages loaded\n";
+}
+
+/* ================= FILE THREAD ================= */
+
+void file_worker(){
+    while(true){
+        unique_lock<mutex> lock(mtx);
+        cv.wait(lock, []{ return !q.empty(); });
+
+        Task t = q.front();
+        q.pop();
+        lock.unlock();
+
+        if(t.type == 1){
+            ofstream f("inbox.txt", ios::app);
+            f<<t.u<<"|"<<t.v<<"|"<<t.msg<<"\n";
+        }
+        else if(t.type == 2){
+            ofstream f("ids.txt");
+            for(auto &p: ids){
+                f<<p.first<<" "<<p.second<<"\n";
+            }
+        }
+    }
+}
+
+/* ================= HTTP ================= */
 
 void send_http(int c,string body,string type="text/html"){
     string res =
@@ -52,6 +119,7 @@ void send_http(int c,string body,string type="text/html"){
     write(c,res.c_str(),res.size());
 }
 
+/* ================= WS ================= */
 
 void ws_send(int c,string msg){
     unsigned char frame[4096];
@@ -77,6 +145,7 @@ string ws_read(int c){
     return msg;
 }
 
+/* ================= HELPERS ================= */
 
 void send_user_list(string uid){
     if(!online.count(uid)) return;
@@ -85,20 +154,20 @@ void send_user_list(string uid){
     for(auto &p: inbox[uid]){
         list += p.first + ",";
     }
+    if(uid != "emoji") list += "emoji,";
 
     ws_send(online[uid], list);
 }
 
 void send_history(int client,string uid,string other){
     string res="HISTORY:"+other+":";
-
     for(string &m: inbox[uid][other]){
         res += m + "|";
     }
-
     ws_send(client,res);
 }
 
+/* ================= WS HANDLER ================= */
 
 void handle_ws(int client,string req){
 
@@ -122,7 +191,6 @@ void handle_ws(int client,string req){
         string msg = ws_read(client);
         if(msg=="") break;
 
-        
         if(msg.find("LOGIN:")==0){
             uid = msg.substr(6);
             if(uid.empty()) continue;
@@ -132,7 +200,6 @@ void handle_ws(int client,string req){
             continue;
         }
 
-        
         if(msg.find("GET:")==0){
             string other = msg.substr(4);
             send_history(client,uid,other);
@@ -140,27 +207,49 @@ void handle_ws(int client,string req){
         }
 
         if(msg.find("MSG:")==0){
-
             int p = msg.find(":",4);
             string to = msg.substr(4,p-4);
             string text = msg.substr(p+1);
-
             if(to.empty() || text.empty()) continue;
 
             string from = uid;
 
+            /* EMOJI */
+           if(to == "emoji"){
+    string reply;
+    if(text == "hi") reply = "👋";
+    else if(text == "hello") reply = "😊";
+    else if(text == "sad") reply = "😢";
+    else if(text == "love") reply = "❤️";
+    else if(text == "angry") reply = "😡";
+    else reply = "🤖";
+
+    if(online.count(from)){
+        ws_send(online[from], "MSG|emoji|"+from+"|"+reply);
+    }
+    continue;
+}
+
+            /* NORMAL */
             string packet = "MSG|" + from + "|" + to + "|" + text;
 
-            inbox[to][from].push_back(from + ":" + text);
-            inbox[from][to].push_back(from + ":" + text);
+            inbox[to][from].push_back(from+":"+text);
+            inbox[from][to].push_back(from+":"+text);
+
+            {
+                lock_guard<mutex> lock(mtx);
+                q.push({1,to,from,from+":"+text});
+                q.push({1,from,to,from+":"+text});
+            }
+            cv.notify_one();
 
             if(online.count(to)){
-                ws_send(online[to], packet);
+                ws_send(online[to],packet);
                 send_user_list(to);
             }
 
             if(online.count(from)){
-                ws_send(online[from], packet);
+                ws_send(online[from],packet);
                 send_user_list(from);
             }
         }
@@ -170,17 +259,16 @@ void handle_ws(int client,string req){
     close(client);
 }
 
+/* ================= HTTP HANDLER ================= */
 
 void handle_http(int client,string req){
 
     if(req.find("GET / ")!=string::npos){
         send_http(client,login);
     }
-
     else if(req.find("GET /signup")!=string::npos){
         send_http(client,signup);
     }
-
     else if(req.find("GET /home")!=string::npos){
         send_http(client,home);
     }
@@ -222,13 +310,19 @@ void handle_http(int client,string req){
         }
 
         ids[u]=p;
+
+        {
+            lock_guard<mutex> lock(mtx);
+            q.push({2,"","",""});
+        }
+        cv.notify_one();
+
         send_http(client,"ok","text/plain");
     }
 
     else if(req.find("GET /bg.jpg")!=string::npos){
 
         FILE *f = fopen("bg.jpg","rb");
-
         if(!f){
             send_http(client,"Not Found","text/plain");
             return;
@@ -238,9 +332,8 @@ void handle_http(int client,string req){
         string data;
         int n;
 
-        while((n=fread(buffer,1,sizeof(buffer),f))>0){
+        while((n=fread(buffer,1,sizeof(buffer),f))>0)
             data.append(buffer,n);
-        }
 
         fclose(f);
 
@@ -254,9 +347,14 @@ void handle_http(int client,string req){
     }
 }
 
-
+/* ================= MAIN ================= */
 
 int main(){
+
+    load_ids();
+    load_msgs();
+
+    thread(file_worker).detach(); // global thread
 
     int server = socket(AF_INET,SOCK_STREAM,0);
 
@@ -269,6 +367,8 @@ int main(){
     listen(server,100);
 
     cout<<"Server running on 8080\n";
+
+    ids["emoji"]="bot";
 
     while(true){
         int client = accept(server,NULL,NULL);

@@ -2,19 +2,31 @@
 #include <thread>
 #include <vector>
 #include <map>
-#include <mutex>
-#include <cstring>
+#include <string>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sstream>
+#include "htmls.h"
 #define ll long long
 #define PORT 8080
 #define BUFFER_SIZE 1024
 #define str string
 using namespace std;
-ll ps=0;
 map<ll,ll>clients;
 map<str,str>ids;
+
+
+class users{
+    public:
+    str name;
+    str pass;
+    int cid;
+};
+map<str,users>datause;
+map<str,vector<users>>friends;
+map<str,vector<str>>inbox;
+
+
 str reqread(int client) {
     str req;
     char data[1024];
@@ -54,134 +66,59 @@ void redirect(int client,str a){
 "\r\n";
 write(client, res.c_str(), res.size());
 }
+
+void get(str &req,str &uid,str &pass){
+    string body = req.substr(req.find("\r\n\r\n") + 4);
+
+        int u = body.find("uid");
+        if(u != string::npos) {
+            uid = body.substr(u + 6);
+            uid = uid.substr(0, uid.find("\""));
+        }
+
+        int p = body.find("pass");
+        if(p != string::npos) {
+            pass = body.substr(p + 7);
+            pass = pass.substr(0, pass.find("\""));
+        }
+}
+
+
 void handler(int server,int cid){
     str req=reqread(clients[cid]);
+    str uid="",pass="";
      if(req.find("GET / ") != string::npos || req.find("GET /HTTP") != string::npos) {
-
-        str html =
-"<!DOCTYPE html>"
-"<html>"
-"<head><title>Login</title></head>"
-"<body>"
-"<h2>Login</h2>"
-"<input id='u' placeholder='User ID'><br><br>"
-"<input id='p' type='password' placeholder='Password'><br><br>"
-"<button onclick='login()'>Login</button>"
-"<button onclick='goSignup()'>Sign Up</button>"
-"<p id='msg' style='color:red;'></p>"
-"<script>"
-"function login(){"
-"const uid=document.getElementById('u').value;"
-"const pass=document.getElementById('p').value;"
-"fetch('/login',{"
-"method:'POST',"
-"headers:{'Content-Type':'application/json'},"
-"body:JSON.stringify({uid:uid,pass:pass})"
-"})"
-".then(r=>r.text())"
-".then(data=>{"
-"if(data==='ok'){"
-"window.location.href='/home';"
-"}else{"
-"document.getElementById('msg').innerText='Invalid credentials';"
-"}"
-"});"
-"}"
-"function goSignup(){"
-"window.location.href='/signup';"
-"}"
-"</script>"
-"</body></html>";
-        respsend(clients[cid], html, "text/html");
+        respsend(clients[cid], login,"text/html");
     }
     if(req.find("GET /home") != string::npos) {
 
-    str ho =
-    "<html><body>"
-    "<h1>Welcome! You are logged in 🎉</h1>"
-    "</body></html>";
 
-    respsend(clients[cid], ho, "text/html");
+    respsend(clients[cid],home, "text/html");
     }
      if(req.find("GET /signup") != string::npos){
-        str sign =
-"<!DOCTYPE html>"
-"<html>"
-"<head><title>Sign Up</title></head>"
-"<body>"
-"<h2>Sign Up</h2>"
-"<input id='u' placeholder='New User ID'><br><br>"
-"<input id='p' type='password' placeholder='New Password'><br><br>"
-"<button onclick='signup()'>Save</button>"
-"<p id='msg' style='color:green;'></p>"
-"<script>"
-"function signup(){"
-"const uid=document.getElementById('u').value;"
-"const pass=document.getElementById('p').value;"
-"fetch('/signup',{"
-"method:'POST',"
-"headers:{'Content-Type':'application/json'},"
-"body:JSON.stringify({uid:uid,pass:pass})"
-"})"
-".then(r=>r.text())"
-".then(data=>{"
-"document.getElementById('msg').innerText=data;"
-"if(data==='ok'){"
-"window.location.href='/';"
-"}else{"
-"document.getElementById('msg').innerText='Invalid credentials';"
-"}"
-"});"
-"}"
-"</script>"
-"</body></html>";
         respsend(clients[cid], sign, "text/html");
 
      }
 
-
-
      if(req.find("POST /login") != string::npos) {
 
-        string body = req.substr(req.find("\r\n\r\n") + 4);
-        str uid = "", pass = "";
-
-        int u = body.find("uid");
-        if(u != string::npos) {
-            uid = body.substr(u + 6);
-            uid = uid.substr(0, uid.find("\""));
-        }
-
-        int p = body.find("pass");
-        if(p != string::npos) {
-            pass = body.substr(p + 7);
-            pass = pass.substr(0, pass.find("\""));
-        }
+        get(req,uid,pass);
         str rep="";
         str a=" ";
         if(ids.find(uid)!=ids.end() && ids[uid]==pass){
             rep="ok";
+            datause[uid].name=uid;
+            datause[uid].pass=pass;
+            datause[uid].cid=clients[cid];
+            friends["a"].push_back(datause[uid]);
         }
         else rep="dead dude";
-        respsend(clients[cid],rep);
-        //redirect(clients[cid],a);
+        respsend(clients[cid],rep,"text/html");
+       // cout<<clients[cid]<<endl;
     }
     if(req.find("POST /signup") != string::npos) {
 
-        string body = req.substr(req.find("\r\n\r\n") + 4);
-        str uid = "", pass = "";
-
-        int u = body.find("uid");
-        if(u != string::npos) {
-            uid = body.substr(u + 6);
-            uid = uid.substr(0, uid.find("\""));
-        }
-
-        int p = body.find("pass");
-        if(p != string::npos) {
-            pass = body.substr(p + 7);
-            pass = pass.substr(0, pass.find("\""));
-        }
+        get(req,uid,pass);
         str rep="";
         str a=" ";
         if(ids.find(uid)!=ids.end() && ids[uid]==pass){
@@ -191,11 +128,30 @@ void handler(int server,int cid){
             rep="ok";
             ids[uid]=pass;
         }
-        respsend(clients[cid],rep);
-        //redirect(clients[cid],a);
+        respsend(clients[cid],rep,"text/html");
+    }
+    if(req.find("POST /home") != string::npos) {
+       str toid = "", data = "";
+        get(req,toid,data);
+      //  ll touid=stoi(toid);
+        str rep=("yo!! i "+datause[uid].name+" know you");
+        inbox[toid].push_back(uid+": "+data);
+        respsend(datause[uid].cid,rep,"text/html");
+    }
+    if(req.find("GET /get") != string::npos) {
+        str res=datause[uid].name;
+        for(str &cur:inbox[uid])res+= "\n"+cur;
+        respsend(datause[uid].cid,res,"text/html");
+    }
+    if(req.find("GET /friends") != string::npos) {
+        str res=datause[uid].name;
+        for(auto &cur:friends[uid])res+= "/n"+cur.name;
+        respsend(datause[uid].cid,res,"text/html");
     }
     close(clients[cid]);
 }
+
+
 
 int main(){
     int server = socket(AF_INET, SOCK_STREAM, 0);
@@ -206,15 +162,15 @@ int main(){
     address.sin_port = htons(PORT);
 
     bind(server, (sockaddr*)&address, sizeof(address));
-    listen(server, 5);
+    listen(server, 10);
 
     cout << "Chat server running on port " << PORT << "\n";
     bool status=true;
     ll cur=0;
     while(status){
-        sockaddr_in address;
-        socklen_t len=sizeof(address);
-        ll cid=accept(server, (sockaddr*)&address,&len);
+        sockaddr_in addres;
+        socklen_t len=sizeof(addres);
+        ll cid=accept(server, (sockaddr*)&addres,&len);
         cur++;
         clients[cur]=cid;
         thread(handler,server,cur).detach();
