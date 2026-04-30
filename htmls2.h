@@ -136,54 +136,36 @@ std::string home =
 "body{margin:0;font-family:Arial;height:100vh;display:flex;"
 "background:url('bg.jpg') center/cover no-repeat;overflow:hidden;}"
 
-"body::before{content:'';position:fixed;inset:0;background:rgba(0, 0, 0, 0.18);pointer-events:none;}"
+"body::before{content:'';position:fixed;inset:0;background:rgba(0, 0, 0, 0.1);pointer-events:none;}"
 
 ".container{display:flex;width:100vw;height:100vh;}"
 
-/* USERS PANEL */
 ".users{width:250px;background:rgba(0, 0, 0, 0.68);backdrop-filter:blur(15px);"
 "color:#fff;padding:10px;overflow-y:auto;border-right:1px solid rgba(255, 255, 255, 0.52);} "
 
 ".user{padding:10px;margin:5px 0;border-radius:8px;cursor:pointer;"
 "background:rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;}"
 
-".user:hover{background:rgba(76, 175, 79, 0.56);}"
+".user:hover{background:rgba(76, 175, 79, 0.13);}"
 
-/* ACTIVE */
 ".active{border:2px solid #2196f3;background:rgba(33, 149, 243, 0.41);}"
 
-/* ONLINE DOT */
 ".online{width:8px;height:8px;background:#4caf50;border-radius:50%;display:inline-block;margin-left:5px;}"
 
-/* UNREAD DOT */
 ".unread{width:8px;height:8px;background:#2196f3;border-radius:50%;display:inline-block;margin-left:5px;}"
 
-/* CHAT */
 ".chatbox{flex:1;display:flex;flex-direction:column;color:#fff;}"
 
 ".topbar{padding:10px;margin:10px;background:rgba(255, 255, 255, 0.36);border-radius:10px;}"
 
 ".chat{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;}"
 
-/* MESSAGE COLORS (FIXED AS YOU SAID) */
 ".msg{max-width:65%;padding:10px;border-radius:12px;white-space:pre-wrap;"
-"color:#fff;display:flex;justify-content:space-between;align-items:center;text-shadow:0 1px 1px rgba(0,0,0,0.3);box-shadow:0 4px 12px rgba(0,0,0,0.3);}"
+"color:#fff;display:flex;justify-content:space-between;align-items:center;}"
 
-/* YOU → GREEN */
+".me{align-self:flex-end;background:rgba(63, 195, 67, 0.98);color:#fff;}"
 
-".me{"
-"    align-self:flex-end;"
-"    background:linear-gradient(135deg,#00c853,#43ea7a);"
-"    color:white;"
-"}"
-
-".other{"
-"    align-self:flex-start;"
-"    background:linear-gradient(135deg,#2962ff,#448aff);"
-"    color:white;"
-"}"
-
-
+".other{align-self:flex-start;background:rgba(40, 137, 215, 0.94);color:#fff;}"
 
 ".inputbar{display:flex;gap:8px;padding:10px;margin:10px;"
 "background:rgba(11, 0, 0, 0.49);border-radius:10px;}"
@@ -205,10 +187,8 @@ std::string home =
 
 "<div class='container'>"
 
-/* USERS */
 "<div id='users' class='users'></div>"
 
-/* CHAT */
 "<div class='chatbox'>"
 
 "<div id='top' class='topbar'>Chatting with: None</div>"
@@ -231,16 +211,13 @@ std::string home =
 "let users=document.getElementById('users');"
 "let current=null;"
 
-/* TRACK UNREAD */
 "let unread = {};"
 
 "ws.onopen=()=>ws.send('LOGIN:'+uid);"
 "ws.onmessage=e=>handle(e.data);"
 
-/* HANDLE */
 "function handle(d){"
 
-/* USERS */
 "if(d.startsWith('USERS:')){"
 "users.innerHTML='';"
 "d.substring(6).split(',').forEach(u=>{"
@@ -254,12 +231,10 @@ std::string home =
 
 "let right=document.createElement('span');"
 
-/* ONLINE DOT */
 "let dot=document.createElement('span');"
 "dot.className='online';"
 "right.appendChild(dot);"
 
-/* UNREAD DOT */
 "if(unread[u]){"
 "let ud=document.createElement('span');"
 "ud.className='unread';"
@@ -274,12 +249,10 @@ std::string home =
 "users.appendChild(x);"
 "});return;}"
 
-/* HISTORY */
 "if(d.startsWith('HISTORY:')){"
-"let data=d.split(':').slice(2).join(':');"
 "chat.innerHTML='';"
 
-"data.split('|').forEach(m=>{"
+"d.substring(8).split('|').forEach(m=>{"
 "if(!m)return;"
 "let i=m.indexOf(':');"
 "let sender=m.substring(0,i);"
@@ -287,37 +260,37 @@ std::string home =
 "add(text,sender===uid);"
 "});"
 
-/* CLEAR UNREAD */
 "unread[current]=false;"
 "return;"
 "}"
 
-/* LIVE MSG */
 "if(d.startsWith('MSG|')){"
 "let p=d.split('|');"
 "let from=p[1];"
 "let to=p[2];"
 "let text=p.slice(3).join('|');"
 
-"if(from===current || to===current){"
-"add(text,from===uid);"
-"} else {"
-"unread[from]=true;"
+"let isMine=(from===uid);"
+"let friend=isMine?to:from;"
+
+"if(current===friend){"
+"add(text,isMine);"
+"}else{"
+"unread[friend]=true;"
 "}"
 "}"
 "}"
 
-/* SELECT */
 "function selectUser(el,u){"
 "current=u;"
 "document.querySelectorAll('.user').forEach(x=>x.classList.remove('active'));"
 "el.classList.add('active');"
 "document.getElementById('to').value=u;"
+"document.getElementById('top').innerText='Chatting with: '+u;"
 "chat.innerHTML='';"
 "ws.send('GET:'+u);"
 "}"
 
-/* ADD */
 "function add(t,self){"
 "let x=document.createElement('div');"
 "x.className='msg '+(self?'me':'other');"
@@ -342,16 +315,18 @@ std::string home =
 "chat.scrollTop=chat.scrollHeight;"
 "}"
 
-/* SEND */
 "function sendMsg(){"
-"let to=document.getElementById('to').value;"
-"let m=document.getElementById('msg').value;"
+"let to=document.getElementById('to').value.trim();"
+"let m=document.getElementById('msg').value.trim();"
 "if(!to||!m)return;"
+
+"current=to;"
+"document.getElementById('top').innerText='Chatting with: '+to;"
+
 "ws.send('MSG:'+to+':'+m);"
 "document.getElementById('msg').value='';"
 "}"
 
-/* SHIFT ENTER */
 "document.getElementById('msg').addEventListener('keydown',function(e){"
 "if(e.key==='Enter' && e.shiftKey){"
 "e.preventDefault();"
