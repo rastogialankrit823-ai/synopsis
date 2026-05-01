@@ -20,3 +20,17 @@
 1|emoji|emoji:😡
 4|1|1:😡
 1|4|1:😡
+2|emoji|2:yo
+2|emoji|emoji:🤖
+2|emoji|2:🤖
+2|emoji|emoji:🤖
+1|emoji|1:yp
+1|emoji|emoji:🤖
+anime|emoji|anime:no
+anime|emoji|emoji:🤖
+1|anime|anime:🤖
+anime|1|anime:🤖
+2|1|1:👋
+1|2|1:👋
+1|6|6:no
+6|1|6:no

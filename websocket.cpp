@@ -1,3 +1,4 @@
+#include <exception>
 #include <iostream>
 #include <thread>
 #include <bits/stdc++.h>
@@ -24,17 +25,46 @@ public:
     map<string,string> ids;
     map<string,int> online;
     map<string, map<string, vector<string>>> inbox;
+    map<string,string> settings;
 
     queue<Task> q;
     mutex mtx;
     condition_variable cv;
 };
 
-class FileHandler{
+class Handler{
+public:
+    virtual void info() = 0;  
+    virtual ~Handler(){}
+};
+class FileHandler:public Handler{
     SharedData &data;
 
 public:
     FileHandler(SharedData &d):data(d){}
+    void info(){
+        cout<<"FILE HANDLER THREAD ALIVE"<<endl;
+    }
+    void load_settings(){
+        ifstream f("settings.txt");
+        string line;
+        while(getline(f,line)){
+            int p=line.find('|');
+            if(p==string::npos) continue;
+            string u=line.substr(0,p);
+            string bg=line.substr(p+1);
+
+            data.settings[u]=bg;
+        }cout<<"Settings loaded\n"; 
+    }
+
+    void save_settings(){
+        ofstream f("settings.txt");
+
+        for(auto &p:data.settings){
+            f<<p.first<<"|"<<p.second<<"\n";
+        }
+    }
 
     void load_ids(){
         ifstream f("ids.txt");
@@ -102,13 +132,15 @@ public:
     }
 };
 
-class HttpHandler{
+class HttpHandler : public Handler{
     SharedData &data;
     FileHandler &fileHandler;
 
 public:
     HttpHandler(SharedData &d,FileHandler &f):data(d),fileHandler(f){}
-
+     void info(){
+        cout<<"HTTP HANDLER ALIVE"<<endl;
+    }   
     void send_http(int c,string body,string type="text/html"){
         string res =
         "HTTP/1.1 200 OK\r\n"
@@ -201,10 +233,37 @@ public:
             write(client,res.c_str(),res.size());
             write(client,img.c_str(),img.size());
         }
+        else if(req.find("GET /bg2.jpg")!=string::npos){
+
+            FILE *f=fopen("bg2.jpg","rb");
+
+            if(!f){
+                send_http(client,"Not Found","text/plain");
+                return;
+            }
+
+            char buffer[4096];
+            string img;
+            int n;
+
+            while((n=fread(buffer,1,sizeof(buffer),f))>0){
+                img.append(buffer,n);
+            }
+
+            fclose(f);
+
+            string res =
+                        "HTTP/1.1 200 OK\r\n"
+                        "Content-Type: image/jpeg\r\n"
+                        "Connection: close\r\n\r\n";
+
+            write(client,res.c_str(),res.size());
+            write(client,img.c_str(),img.size());
+        }
     }
 };
 
-class WebSocketHandler{
+class WebSocketHandler:public Handler{
     SharedData &data;
     FileHandler &fileHandler;
 
@@ -212,7 +271,9 @@ class WebSocketHandler{
 
 public:
     WebSocketHandler(SharedData &d,FileHandler &f):data(d),fileHandler(f){}
-
+     void info(){
+        cout<<"CLIENT THREAD WORKER ALIVE"<<endl;
+    }
     string base64_encode(const unsigned char* input,int len){
         string out;
 
@@ -273,12 +334,13 @@ public:
         if(!data.online.count(uid)) return;
 
         string list="USERS:";
-
+        int b =0;
         for(auto &p:data.inbox[uid]){
             list+=p.first+",";
+            if(p.first=="emoji")b++;
         }
 
-        if(uid!="emoji"){
+        if(uid!="emoji" && b==0){
             list+="emoji,";
         }
 
@@ -327,7 +389,32 @@ public:
 
                 continue;
             }
+            if(msg=="GET_PROFILE"){
+                string bg="A";
+                if(data.settings.count(uid)){
+                    bg=data.settings[uid];
+                }
+                string pass="";
 
+                if(data.ids.count(uid)){
+                    pass=data.ids[uid];
+                }
+
+                ws_send(client,"PROFILE|"+uid+"|"+pass+"|"+bg);
+                continue;
+            }
+
+            if(msg.find("SET_BG:")==0){
+                string bg=msg.substr(7);
+
+                    if(bg!="A" && bg!="B") continue;
+
+                    data.settings[uid]=bg;
+                    fileHandler.save_settings();
+
+                    ws_send(client,"BG_SET|"+bg);
+                     continue;
+            }
             if(msg.find("GET:")==0){
                 string other=msg.substr(4);
                 send_history(client,uid,other);
@@ -417,12 +504,16 @@ public:
 
         fileHandler.load_ids();
         fileHandler.load_msgs();
+        fileHandler.load_settings();
+        fileHandler.info();
+        httpHandler.info();
+        wsHandler.info();
 
         data.ids["emoji"]="bot";
 
         thread(&FileHandler::file_worker,&fileHandler).detach();
-
-        int server=socket(AF_INET,SOCK_STREAM,0);
+        try{
+            int server=socket(AF_INET,SOCK_STREAM,0);
 
         sockaddr_in addr;
         addr.sin_family=AF_INET;
@@ -458,6 +549,10 @@ public:
                 }
 
             }).detach();
+           }
+
+        }catch(exception &e){
+            cout<<"I DIED BECAUSE OF 0 "<<e.what()<<endl;
         }
     }
 };

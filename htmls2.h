@@ -133,10 +133,12 @@ std::string home =
 
 "<style>"
 
-"body{margin:0;font-family:Arial;height:100vh;display:flex;"
-"background:url('bg.jpg') center/cover no-repeat;overflow:hidden;}"
+"body{margin:0;font-family:Arial;height:100vh;display:flex;overflow:hidden;}"
 
-"body::before{content:'';position:fixed;inset:0;background:rgba(0, 0, 0, 0.1);pointer-events:none;}"
+".bgA{background:url('bg.jpg') center/cover no-repeat;}"
+".bgB{background:url('bg2.jpg') center/cover no-repeat;}"
+
+"body::before{content:'';position:fixed;inset:0;background:rgba(0, 0, 0, 0.11);pointer-events:none;}"
 
 ".container{display:flex;width:100vw;height:100vh;}"
 
@@ -146,9 +148,9 @@ std::string home =
 ".user{padding:10px;margin:5px 0;border-radius:8px;cursor:pointer;"
 "background:rgba(255,255,255,0.08);display:flex;justify-content:space-between;align-items:center;}"
 
-".user:hover{background:rgba(76, 175, 79, 0.13);}"
+".user:hover{background:rgba(33, 203, 53, 0.74);}"
 
-".active{border:2px solid #2196f3;background:rgba(33, 149, 243, 0.41);}"
+".active{border:2px solid #2196f3;background:rgba(33, 149, 243, 0.65);}"
 
 ".online{width:8px;height:8px;background:#4caf50;border-radius:50%;display:inline-block;margin-left:5px;}"
 
@@ -158,23 +160,22 @@ std::string home =
 
 ".topbar{padding:10px;margin:10px;background:rgba(255, 255, 255, 0.36);border-radius:10px;}"
 
+".topbar button{float:right;margin-left:8px;border:none;border-radius:6px;padding:6px 10px;cursor:pointer;}"
+
 ".chat{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;}"
 
 ".msg{max-width:65%;padding:10px;border-radius:12px;white-space:pre-wrap;"
 "color:#fff;display:flex;justify-content:space-between;align-items:center;}"
 
-".me{align-self:flex-end;background:rgba(63, 195, 67, 0.98);color:#fff;}"
+".me{align-self:flex-end;background:rgba(73, 232, 78, 0.98);color:#fff;}"
 
-".other{align-self:flex-start;background:rgba(40, 137, 215, 0.94);color:#fff;}"
+".other{align-self:flex-start;background:rgba(33, 149, 243, 0.94);color:#fff;}"
 
 ".inputbar{display:flex;gap:8px;padding:10px;margin:10px;"
 "background:rgba(11, 0, 0, 0.49);border-radius:10px;}"
 
-".inputbar input,.inputbar textarea{"
-"border:none;border-radius:8px;"
-"background:rgba(5, 5, 5, 0.92);"
-"color:#fff;outline:none;padding:10px;"
-"}"
+".inputbar input,.inputbar textarea{border:none;border-radius:8px;"
+"background:rgba(5, 5, 5, 0.92);color:#fff;outline:none;padding:10px;}"
 
 "#to{width:130px;}"
 
@@ -183,7 +184,13 @@ std::string home =
 ".inputbar button{width:90px;border:none;border-radius:8px;"
 "background:#4caf50;color:#fff;cursor:pointer;}"
 
-"</style></head><body>"
+"#profileBox{display:none;position:fixed;top:75px;right:25px;"
+"background:rgba(0,0,0,0.88);color:white;padding:18px;border-radius:12px;"
+"border:1px solid rgba(255,255,255,0.35);z-index:20;width:240px;}"
+
+"#profileBox button{margin:4px;padding:7px 10px;border:none;border-radius:6px;cursor:pointer;}"
+
+"</style></head><body class='bgA'>"
 
 "<div class='container'>"
 
@@ -191,7 +198,11 @@ std::string home =
 
 "<div class='chatbox'>"
 
-"<div id='top' class='topbar'>Chatting with: None</div>"
+"<div id='top' class='topbar'>"
+"<span id='chatTitle'>Chatting with: None</span>"
+"<button onclick='openProfile()'>Profile</button>"
+"</div>"
+
 "<div id='chat' class='chat'></div>"
 
 "<div class='inputbar'>"
@@ -202,6 +213,18 @@ std::string home =
 
 "</div></div>"
 
+"<div id='profileBox'>"
+"<h3>Profile</h3>"
+"<p>Name: <span id='profileName'></span></p>"
+"<p>Password: <span id='profilePass'></span></p>"
+"<p>Background:</p>"
+"<button onclick=\"setBg('A')\">A</button>"
+"<button onclick=\"setBg('B')\">B</button>"
+"<br><br>"
+"<button onclick='logout()' style='background:#e53935;color:white;'>Logout</button>"
+"<button onclick='closeProfile()'>Close</button>"
+"</div>"
+
 "<script>"
 
 "let uid=new URLSearchParams(location.search).get('uid');"
@@ -210,13 +233,30 @@ std::string home =
 "let chat=document.getElementById('chat');"
 "let users=document.getElementById('users');"
 "let current=null;"
+"let unread={};"
 
-"let unread = {};"
+"ws.onopen=()=>{"
+"ws.send('LOGIN:'+uid);"
+"ws.send('GET_PROFILE');"
+"};"
 
-"ws.onopen=()=>ws.send('LOGIN:'+uid);"
 "ws.onmessage=e=>handle(e.data);"
 
 "function handle(d){"
+
+"if(d.startsWith('PROFILE|')){"
+"let p=d.split('|');"
+"document.getElementById('profileName').innerText=p[1];"
+"document.getElementById('profilePass').innerText=p[2];"
+"applyBg(p[3]);"
+"return;"
+"}"
+
+"if(d.startsWith('BG_SET|')){"
+"let bg=d.split('|')[1];"
+"applyBg(bg);"
+"return;"
+"}"
 
 "if(d.startsWith('USERS:')){"
 "users.innerHTML='';"
@@ -245,7 +285,6 @@ std::string home =
 "x.appendChild(right);"
 
 "x.onclick=()=>selectUser(x,u);"
-
 "users.appendChild(x);"
 "});return;}"
 
@@ -286,7 +325,7 @@ std::string home =
 "document.querySelectorAll('.user').forEach(x=>x.classList.remove('active'));"
 "el.classList.add('active');"
 "document.getElementById('to').value=u;"
-"document.getElementById('top').innerText='Chatting with: '+u;"
+"document.getElementById('chatTitle').innerText='Chatting with: '+u;"
 "chat.innerHTML='';"
 "ws.send('GET:'+u);"
 "}"
@@ -310,7 +349,6 @@ std::string home =
 
 "x.appendChild(span);"
 "x.appendChild(btn);"
-
 "chat.appendChild(x);"
 "chat.scrollTop=chat.scrollHeight;"
 "}"
@@ -321,10 +359,34 @@ std::string home =
 "if(!to||!m)return;"
 
 "current=to;"
-"document.getElementById('top').innerText='Chatting with: '+to;"
+"document.getElementById('chatTitle').innerText='Chatting with: '+to;"
 
 "ws.send('MSG:'+to+':'+m);"
 "document.getElementById('msg').value='';"
+"}"
+
+"function openProfile(){"
+"ws.send('GET_PROFILE');"
+"document.getElementById('profileBox').style.display='block';"
+"}"
+
+"function closeProfile(){"
+"document.getElementById('profileBox').style.display='none';"
+"}"
+
+"function setBg(bg){"
+"ws.send('SET_BG:'+bg);"
+"}"
+
+"function applyBg(bg){"
+"document.body.classList.remove('bgA','bgB');"
+"if(bg==='B')document.body.classList.add('bgB');"
+"else document.body.classList.add('bgA');"
+"}"
+
+"function logout(){"
+"ws.close();"
+"location.href='/';"
 "}"
 
 "document.getElementById('msg').addEventListener('keydown',function(e){"
